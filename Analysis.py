@@ -1,5 +1,6 @@
 import requests
 import json
+import datetime
 
 # Risk Levels
 # 0 - Not risky < 7 days
@@ -17,7 +18,10 @@ class VulDates:
         self.mod = mod
 
 def find_published_dates ( object ):
-    dateobj = VulDates( object['id'], object['published'], object['lastModified'] )
+    dateobj = VulDates( object[ 'id' ], object[ 'published' ], object[ 'lastModified' ] )
+    print( object[ 'id' ] )
+    print( datetime.strptime( object[ 'published' ] ) )
+    print( object[ 'lastModified' ] )
     return dateobj
 
 def print_json ( object ):
@@ -36,7 +40,7 @@ def main():
     
     response = requests.get( "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=apache maven " )
     print( response.status_code )
-    print_json( response.json()['vulnerabilities'] )
+    # print_json( response.json()['vulnerabilities'] )
 
     for i in response.json()['vulnerabilities']:
         find_published_dates( i['cve'] )
