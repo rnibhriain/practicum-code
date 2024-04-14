@@ -24,8 +24,22 @@ def codePrediction ():
 # Vulnerability Prediction by Project Metrics                                 #
 ###############################################################################
 def projectPrediction ():
-    
+    url = "https://api.github.com/search/repositories"
+    url += "?q=language:python"
 
+    headers = {"Accept": "application/vnd.github.v3+json"}
+    res = requests.get(url, headers=headers)
+    print(f"Status code: {res.status_code}")
+
+    json_response = res.json()
+    print(json_response.keys())
+    json_response['total_count']
+
+    response_dicts = json_response['items']
+    print( len(response_dicts) )
+
+    first_repo = response_dicts[0]
+    print( first_repo )
 
     return 0
 ###############################################################################
@@ -75,6 +89,6 @@ def main():
     # for now lets focus on apache cus idk
     ######################################################
     
-
+    projectPrediction ()
 if __name__ == "__main__":
     main()
