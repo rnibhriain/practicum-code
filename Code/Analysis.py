@@ -1,6 +1,11 @@
 import requests
 import json
 import datetime
+import requests
+import datetime
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
 
 # Risk Levels
 # 0 - Not risky < 7 days
@@ -24,7 +29,7 @@ def codePrediction ():
 # Vulnerability Prediction by Project Metrics                                 #
 ###############################################################################
 def projectPrediction ():
-    url = "https://api.github.com/users/rnibhriain/repos?simple=yes&per_page=100&page=1"
+    url = "https://api.github.com/repos/apache/spark/commits?simple=yes&per_page=100&page=1"
     url += "?q=language:python"
 
     headers = {"Accept": "application/vnd.github.v3+json"}
@@ -32,9 +37,122 @@ def projectPrediction ():
     print(f"Status code: {res.status_code}")
 
     json_response = res.json()
-    print(json_response)
+    #print(json_response)
+
+    commits = []
+
+    if (res.status_code == 200):
+                commits.append(res)
+
+    # get_productive_days(commits)
+
+    commits_over_time( commits )
 
     return 0
+
+def commits_over_time ( commits) :
+    dates = []
+    counts = []
+    finalDates = []
+    for x in commits:
+        for i in x.json(): 
+            date = i['commit']['author']['date'].replace("T", " ")
+            date = date.replace("Z", "")
+                
+            date = date.split(" ")
+
+            dates.append(date[0])
+
+    currentDate = ''
+    i = -1
+    for x in dates: 
+        if (currentDate == x ):
+            
+            counts[ i ] += 1
+        else:
+            print("ehhh")
+            finalDates.append(x)
+            counts.append( 1 )
+            currentDate = x
+            i += 1
+
+    print(len(finalDates))
+    print(len(counts))
+
+    df = pd.DataFrame({
+        "Dates": finalDates,
+        "Count": counts
+    })
+
+    figline = px.line(df, x="Dates", y="Count")
+    figline.update_traces(line=dict(color = 'white'))
+
+    figscatt = px.scatter(df, x='Dates', y='Count', title='Commits Over Time', color = 'Count', size = 'Count' )
+
+    figscatt.update_layout(
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font_color='white'
+    )
+
+    fig = go.Figure(data=figline.data + figscatt.data)
+
+    fig.update_layout(
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font_color='white',
+        title = f'Commits Over Time'
+    )
+
+    fig.show()
+
+    return df
+
+def display_productive_days ( commits) :
+    days = []
+    times = []
+    for x in commits:
+        for i in x.json(): 
+            date = i['commit']['author']['date'].replace("T", " ")
+            date = date.replace("Z", "")
+            temp = pd.Timestamp(date)
+            dt = temp.day_name() 
+
+            days.append(dt)
+        
+            date = date.split(" ")
+            temp = pd.Timestamp(date[1])
+                
+            hour = temp.hour
+            times.append(hour)     
+    
+    count1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    counts = []
+    for i in times:
+        count1[i] = count1[i] + 1
+    
+    for i in times:
+        counts.append(count1[i])
+    df = pd.DataFrame({
+        "Days": days,
+        "Times": times,
+        "Count": counts
+    })
+
+    fig = px.scatter(df, x="Days", y="Times", color='Count', size='Count')
+
+    fig.update_xaxes(showgrid=False, categoryorder='array', categoryarray= ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+
+    fig.update_yaxes(showgrid=False, tickvals=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
+
+    fig.update_layout(
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        font_color='black',
+        title = f'Commits Distribution Per Day'
+    )
+
+    fig.show()
 ###############################################################################
 
 ###############################################################################
@@ -83,5 +201,6 @@ def main():
     ######################################################
     
     projectPrediction ()
+
 if __name__ == "__main__":
     main()
