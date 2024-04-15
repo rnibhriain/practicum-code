@@ -24,7 +24,7 @@ def codePrediction ():
 # Vulnerability Prediction by Project Metrics                                 #
 ###############################################################################
 def projectPrediction ():
-    url = "https://api.github.com/search/repositories"
+    url = "https://api.github.com/users/rnibhriain/repos?simple=yes&per_page=100&page=1"
     url += "?q=language:python"
 
     headers = {"Accept": "application/vnd.github.v3+json"}
@@ -32,14 +32,7 @@ def projectPrediction ():
     print(f"Status code: {res.status_code}")
 
     json_response = res.json()
-    print(json_response.keys())
-    json_response['total_count']
-
-    response_dicts = json_response['items']
-    print( len(response_dicts) )
-
-    first_repo = response_dicts[0]
-    print( first_repo )
+    print(json_response)
 
     return 0
 ###############################################################################
