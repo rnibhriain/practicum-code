@@ -6,6 +6,7 @@ import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+import time
 
 # Risk Levels
 # 0 - Not risky < 7 days
@@ -29,31 +30,47 @@ def codePrediction ():
 # Vulnerability Prediction by Project Metrics                                 #
 ###############################################################################
 def projectPrediction ():
-    url = "https://api.github.com/repos/apache/spark/commits?simple=yes&per_page=100&page=1"
-    url += "?q=language:python"
+    url = "https://api.github.com/repos/apache/spark/commits?per_page=100&page=1"
 
-    headers = {"Accept": "application/vnd.github.v3+json"}
+    headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'}
     res = requests.get(url, headers=headers)
     print(f"Status code: {res.status_code}")
+    print(res.reason)
 
-    json_response = res.json()
-    #print(json_response)
+    print(res.links['last']['url'])
+
+    current = res.links['last']['url'].split("=")
+    print(current[2])
+    length = int(current[2])
 
     commits = []
 
-    if (res.status_code == 200):
-                commits.append(res)
 
-    # get_productive_days(commits)
 
-    commits_over_time( commits )
+    i = 1
+    while ( i < length ):
+        url = "https://api.github.com/repos/apache/spark/commits?per_page=100&page={i}"
+        time.sleep(2)
+        headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'}
+        res = requests.get(url, headers=headers)
+        print(f"Status code: {res.status_code}")
+
+        commits = []
+
+        if (res.status_code == 200):
+                    commits.append(res)
+
+        populateDates ( commits ) 
+        
+        i += 1
+
+    commits_over_time()
 
     return 0
 
-def commits_over_time ( commits) :
-    dates = []
-    counts = []
-    finalDates = []
+dates = []
+counts = []
+def populateDates ( commits ) :
     for x in commits:
         for i in x.json(): 
             date = i['commit']['author']['date'].replace("T", " ")
@@ -63,6 +80,8 @@ def commits_over_time ( commits) :
 
             dates.append(date[0])
 
+def commits_over_time () :
+    finalDates = []
     currentDate = ''
     i = -1
     for x in dates: 
@@ -70,7 +89,6 @@ def commits_over_time ( commits) :
             
             counts[ i ] += 1
         else:
-            print("ehhh")
             finalDates.append(x)
             counts.append( 1 )
             currentDate = x
