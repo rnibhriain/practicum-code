@@ -53,7 +53,7 @@ def projectPrediction ():
         time.sleep(2)
         headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'}
         res = requests.get(url, headers=headers)
-        print(f"Status code: {res.status_code}")
+        print(f"Status code of i: {res.status_code}")
 
         commits = []
 
