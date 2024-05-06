@@ -32,7 +32,9 @@ def codePrediction ():
 def projectPrediction ():
     url = "https://api.github.com/repos/apache/spark/commits?per_page=100&page=1"
 
-    headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'}
+    token = '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'
+    headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
+               , 'Authorization': 'token ' + token }
     res = requests.get(url, headers=headers)
     print(f"Status code: {res.status_code}")
     print(res.reason)
@@ -49,13 +51,11 @@ def projectPrediction ():
 
     i = 1
     while ( i < length ):
-        url = "https://api.github.com/repos/apache/spark/commits?per_page=100&page={i}"
-        time.sleep(2)
-        headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'}
+        url = f"https://api.github.com/repos/apache/spark/commits?per_page=100&page={i}"
+        token = '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'
+        headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
+               , 'Authorization': 'token ' + token }
         res = requests.get(url, headers=headers)
-        print(f"Status code of i: {res.status_code}")
-
-        commits = []
 
         if (res.status_code == 200):
                     commits.append(res)
@@ -102,16 +102,18 @@ def commits_over_time () :
         "Count": counts
     })
 
+    df.to_csv('data.txt', sep='\t', index=False)
+
     figline = px.line(df, x="Dates", y="Count")
     figline.update_traces(line=dict(color = 'white'))
 
-    figscatt = px.scatter(df, x='Dates', y='Count', title='Commits Over Time', color = 'Count', size = 'Count' )
+    #figscatt = px.scatter(df, x='Dates', y='Count', title='Commits Over Time', color = 'Count', size = 'Count' )
 
-    figscatt.update_layout(
-        plot_bgcolor='black',
-        paper_bgcolor='black',
-        font_color='white'
-    )
+    #figscatt.update_layout(
+        #plot_bgcolor='black',
+       # paper_bgcolor='black',
+      #  font_color='white'
+    ##)
 
     fig = go.Figure(data=figline.data + figscatt.data)
 
