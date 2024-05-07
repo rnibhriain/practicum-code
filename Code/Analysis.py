@@ -2,7 +2,7 @@ import requests
 import json
 import datetime
 import requests
-import datetime
+from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -30,7 +30,7 @@ def codePrediction ():
 # Vulnerability Prediction by Project Metrics                                 #
 ###############################################################################
 def projectPrediction ():
-    url = "https://api.github.com/repos/apache/spark/commits?per_page=100&page=1"
+    url = "https://api.github.com/repos/prestodb/presto/commits?per_page=100&page=1"
 
     token = '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'
     headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
@@ -102,20 +102,11 @@ def commits_over_time () :
         "Count": counts
     })
 
-    df.to_csv('data.txt', sep='\t', index=False)
+    df = df.drop_duplicates()
 
-    figline = px.line(df, x="Dates", y="Count")
-    figline.update_traces(line=dict(color = 'white'))
+    figline = px.line(x=df.Dates, y=df.Count)
 
-    #figscatt = px.scatter(df, x='Dates', y='Count', title='Commits Over Time', color = 'Count', size = 'Count' )
-
-    #figscatt.update_layout(
-        #plot_bgcolor='black',
-       # paper_bgcolor='black',
-      #  font_color='white'
-    ##)
-
-    fig = go.Figure(data=figline.data + figscatt.data)
+    fig = go.Figure(data=figline.data)
 
     fig.update_layout(
         plot_bgcolor='black',
@@ -127,87 +118,70 @@ def commits_over_time () :
     fig.show()
 
     return df
-
-def display_productive_days ( commits) :
-    days = []
-    times = []
-    for x in commits:
-        for i in x.json(): 
-            date = i['commit']['author']['date'].replace("T", " ")
-            date = date.replace("Z", "")
-            temp = pd.Timestamp(date)
-            dt = temp.day_name() 
-
-            days.append(dt)
-        
-            date = date.split(" ")
-            temp = pd.Timestamp(date[1])
-                
-            hour = temp.hour
-            times.append(hour)     
-    
-    count1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    counts = []
-    for i in times:
-        count1[i] = count1[i] + 1
-    
-    for i in times:
-        counts.append(count1[i])
-    df = pd.DataFrame({
-        "Days": days,
-        "Times": times,
-        "Count": counts
-    })
-
-    fig = px.scatter(df, x="Days", y="Times", color='Count', size='Count')
-
-    fig.update_xaxes(showgrid=False, categoryorder='array', categoryarray= ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
-
-    fig.update_yaxes(showgrid=False, tickvals=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
-
-    fig.update_layout(
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        font_color='black',
-        title = f'Commits Distribution Per Day'
-    )
-
-    fig.show()
 ###############################################################################
 
 ###############################################################################
 # Vulnerability Prediction by NVD Data                                        #
 ###############################################################################
 def vulPrediction ():
-    response = requests.get( "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=apache maven " )
+    response = requests.get( "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=apache" )
     print( response.status_code )
-    # print_json( response.json()['vulnerabilities'] )
+
+    commits = []
 
     for i in response.json()['vulnerabilities']:
-        find_published_dates( i['cve'] )
-    # print_json( response.json()['vulnerabilities'][0]['cve']['published'] )
-    # print_json( response.json()['vulnerabilities'][0]['cve']['descriptions'] )
+        commits.append( i['cve'] )
 
-    return 0
+    populateDates( commits )
+    vuls_over_time()
 
-class VulDates:
-    def __init__( self, id, pub, mod ):
-        self.id = id
-        self.pub = pub
-        self.mod = mod
+def populateDates ( commits ) :
+    for x in commits:
+        date = x[ 'published' ].replace("T", " ")
+        date = date.replace("Z", "")
+                
+        date = date.split(" ")
 
-def find_published_dates ( object ):
-    
-    dateobj = VulDates( object[ 'id' ], object[ 'published' ], object[ 'lastModified' ] )
-    print( object[ 'id' ] )
-    print( datetime.strptime( object[ 'published' ] ) )
-    print( object[ 'lastModified' ] )
-    return dateobj
+        dates.append(date[0])
 
-def print_json ( object ):
-    
-    text = json.dumps( object, sort_keys = True, indent = 4 )
-    print( text )
+def vuls_over_time ():
+    finalDates = []
+    currentDate = ''
+    i = -1
+    for x in dates: 
+        if (currentDate == x ):
+            
+            counts[ i ] += 1
+        else:
+            finalDates.append(x)
+            counts.append( 1 )
+            currentDate = x
+            i += 1
+
+    print(len(finalDates))
+    print(len(counts))
+
+    df = pd.DataFrame({
+        "Dates": finalDates,
+        "Count": counts
+    })
+
+    df = df.drop_duplicates()
+
+    figline = px.line(x=df.Dates, y=df.Count)
+
+    fig = go.Figure(data=figline.data)
+
+    fig.update_layout(
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font_color='white',
+        title = f'Vulnerabilities Over Time'
+    )
+
+    fig.show()
+
+    return df
 
 ###############################################################################
     
@@ -220,7 +194,7 @@ def main():
     # for now lets focus on apache cus idk
     ######################################################
     
-    projectPrediction ()
+    vulPrediction ()
 
 if __name__ == "__main__":
     main()
