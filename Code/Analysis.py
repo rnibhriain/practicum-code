@@ -9,6 +9,9 @@ from pmdarima import preprocessing
 from scipy import stats
 from scipy.stats import skew
 from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.graphics.tsaplots import *
+from statsmodels.tsa.stattools import adfuller
+import matplotlib.pyplot as plt
 
 # Risk Levels
 # 0 - Not risky < 7 days
@@ -74,9 +77,8 @@ def populateDates ( commits ) :
     for x in commits:
         for i in x.json(): 
             date = i['commit']['author']['date'].replace("T", " ")
-            date = date.replace("Z", "")
                 
-            date = date.split(" ")
+            date = date.split("T")
 
             dates.append(date[0])
 
@@ -115,20 +117,16 @@ def commits_over_time () :
         title = f'Commits Over Time'
     )
 
-    predictions = list()
+    model = ARIMA(df.Count, order=(5,1,0))
+    model_fit = model.fit()
 
-    model_fit = ARIMA(df.Count, order=(5,1,0)).fit()
+    # plot residual errors
+    residuals = pd.DataFrame(model_fit.resid)
+    residuals.plot(kind='kde')
+    print(residuals.describe())
+    #pyplot.show()
 
-    print(model_fit.summary() )
-    for x in range( len(df) ):
-        model = ARIMA(df, order=(5,1,0))
-        model_fit = model.fit()
-        output = model_fit.forecast()
-        yhat = output[0]
-        predictions.append(yhat)
-        print('predicted=%f, expected=%f' % (yhat, df.Count[x]))
-
-    figline = px.line(x=df.Dates, y=output)
+    #figline = px.line(x=df.Dates, y=residuals)
 
     fig = go.Figure(data=figline.data)
 
@@ -153,13 +151,14 @@ def vulPrediction ():
     vuls_over_time()
 
 def popDates ( commits ) :
+    print( len(commits))
     for x in commits:
         date = x[ 'published' ]
-        #date = date.replace("Z", "")
                 
         date = date.split("T")
-
-        dates.append(date[0])
+        date = date[0].split("-")
+        date = date[0] + '-' + date[1]
+        dates.append(date)
 
 def vuls_over_time ():
     finalDates = []
@@ -175,15 +174,42 @@ def vuls_over_time ():
             currentDate = x
             i += 1
 
-    print(len(finalDates))
-    print(len(counts))
-
     df = pd.DataFrame({
         "Dates": finalDates,
         "Count": counts
     })
 
+    print(df)
     df = df.drop_duplicates()
+
+    f = plt.figure()
+    ax1 = f.add_subplot(121)
+    ax1.set_title('1st Order Differencing')
+    plot_acf(df.Count.diff().dropna(), ax=ax1)
+
+    ax2 = f.add_subplot(122)
+    #plot_acf(df.Count.diff().diff().dropna(), ax=ax2)
+    #plt.show()
+
+    result = adfuller(df.Count.dropna())
+    print('p-value ', result[1])
+
+    result = adfuller(df.Count.diff().dropna())
+    print('p-value ', result[1])
+
+    result = adfuller(df.Count.diff().diff().dropna())
+    print('p-value ', result[1])
+
+
+    # p = 1
+    # d = 0
+    # q = 1
+
+    arima_model = ARIMA(df.Count, order=(1, 0, 1))
+    model = arima_model.fit()
+    print(model.summary())
+    plot_predict(model, ax = ax2)
+    plt.show()
 
     figline = px.line(x=df.Dates, y=df.Count)
 
@@ -210,8 +236,8 @@ def main():
     # come up with set list of packages
     # for now lets focus on apache cus idk
     ######################################################
-    projectPrediction()
-    ##vulPrediction ()
+    #projectPrediction()
+    vulPrediction ()
 
 if __name__ == "__main__":
     main()
