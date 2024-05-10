@@ -1,12 +1,14 @@
 import requests
-import json
-import datetime
 import requests
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-import time
+from pmdarima.arima import *
+from pmdarima import preprocessing
+from scipy import stats
+from scipy.stats import skew
+from statsmodels.tsa.arima.model import ARIMA
 
 # Risk Levels
 # 0 - Not risky < 7 days
@@ -47,10 +49,8 @@ def projectPrediction ():
 
     commits = []
 
-
-
     i = 1
-    while ( i < length ):
+    while ( i < 12 ):
         url = f"https://api.github.com/repos/apache/spark/commits?per_page=100&page={i}"
         token = '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'
         headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
@@ -115,6 +115,23 @@ def commits_over_time () :
         title = f'Commits Over Time'
     )
 
+    predictions = list()
+
+    model_fit = ARIMA(df.Count, order=(5,1,0)).fit()
+
+    print(model_fit.summary() )
+    for x in range( len(df) ):
+        model = ARIMA(df, order=(5,1,0))
+        model_fit = model.fit()
+        output = model_fit.forecast()
+        yhat = output[0]
+        predictions.append(yhat)
+        print('predicted=%f, expected=%f' % (yhat, df.Count[x]))
+
+    figline = px.line(x=df.Dates, y=output)
+
+    fig = go.Figure(data=figline.data)
+
     fig.show()
 
     return df
@@ -132,15 +149,15 @@ def vulPrediction ():
     for i in response.json()['vulnerabilities']:
         commits.append( i['cve'] )
 
-    populateDates( commits )
+    popDates( commits )
     vuls_over_time()
 
-def populateDates ( commits ) :
+def popDates ( commits ) :
     for x in commits:
-        date = x[ 'published' ].replace("T", " ")
-        date = date.replace("Z", "")
+        date = x[ 'published' ]
+        #date = date.replace("Z", "")
                 
-        date = date.split(" ")
+        date = date.split("T")
 
         dates.append(date[0])
 
@@ -193,8 +210,8 @@ def main():
     # come up with set list of packages
     # for now lets focus on apache cus idk
     ######################################################
-    
-    vulPrediction ()
+    projectPrediction()
+    ##vulPrediction ()
 
 if __name__ == "__main__":
     main()
