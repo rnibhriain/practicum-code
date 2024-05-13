@@ -25,5 +25,7 @@ This part of the analysis aims to predict how many vulnerabilities will be repor
 
 - Proposal Form
 - Literature Review
+- Final Report (In process)
+- Final Presentation (Not Started)
 
 ## Project Instructions
