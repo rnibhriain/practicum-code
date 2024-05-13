@@ -43,6 +43,7 @@ def projectPrediction ():
     res = requests.get(url, headers=headers)
     print(f"Status code: {res.status_code}")
     print(res.reason)
+    #print( res.json() )
 
     print(res.links['last']['url'])
 
@@ -52,8 +53,10 @@ def projectPrediction ():
 
     commits = []
 
+    IssuesResolving()
+
     i = 1
-    while ( i < 12 ):
+    while ( i < length ):
         url = f"https://api.github.com/repos/apache/spark/commits?per_page=100&page={i}"
         token = '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'
         headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
@@ -62,17 +65,31 @@ def projectPrediction ():
 
         if (res.status_code == 200):
                     commits.append(res)
-
+        
+        num_Contributors( commits )
         populateDates ( commits ) 
         
         i += 1
 
-    commits_over_time()
+    #commits_over_time()
+
+    return 0
+
+def IssuesResolving ():
+    url = "https://api.github.com/repos/prestodb/presto"
+
+    token = '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'
+    headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
+               , 'Authorization': 'token ' + token }
+    res = requests.get(url, headers=headers)
+
+    print( res.json() )
 
     return 0
 
 dates = []
 counts = []
+contributors = []
 def populateDates ( commits ) :
     for x in commits:
         for i in x.json(): 
@@ -81,6 +98,14 @@ def populateDates ( commits ) :
             date = date.split("T")
 
             dates.append(date[0])
+
+
+def num_Contributors ( commits ) :
+    for x in commits:
+        for i in x.json(): 
+            if i['commit']['author'] not in contributors:
+                contributors.append( i['commit']['author'] )
+
 
 def commits_over_time () :
     finalDates = []
@@ -188,8 +213,6 @@ def vuls_over_time ():
     plot_acf(df.Count.diff().dropna(), ax=ax1)
 
     ax2 = f.add_subplot(122)
-    #plot_acf(df.Count.diff().diff().dropna(), ax=ax2)
-    #plt.show()
 
     result = adfuller(df.Count.dropna())
     print('p-value ', result[1])
@@ -210,6 +233,8 @@ def vuls_over_time ():
     print(model.summary())
     plot_predict(model, ax = ax2)
     plt.show()
+
+    print(model.get_prediction())
 
     figline = px.line(x=df.Dates, y=df.Count)
 
@@ -236,8 +261,9 @@ def main():
     # come up with set list of packages
     # for now lets focus on apache cus idk
     ######################################################
-    #projectPrediction()
-    vulPrediction ()
+    projectPrediction()
+    #codePrediction()
+    #vulPrediction ()
 
 if __name__ == "__main__":
     main()
