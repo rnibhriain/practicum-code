@@ -35,7 +35,7 @@ def codePrediction ():
 # Vulnerability Prediction by Project Metrics                                 #
 ###############################################################################
 def projectPrediction ():
-    url = "https://api.github.com/repos/prestodb/presto/commits?per_page=100&page=1"
+    url = "https://api.github.com/repos/apache/spark/issues?per_page=100&page=1"
 
     token = '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'
     headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
@@ -43,31 +43,31 @@ def projectPrediction ():
     res = requests.get(url, headers=headers)
     print(f"Status code: {res.status_code}")
     print(res.reason)
-    #print( res.json() )
 
     print(res.links['last']['url'])
 
     current = res.links['last']['url'].split("=")
-    print(current[2])
+    print( "the length is: " , current[2])
     length = int(current[2])
 
     commits = []
-
-    IssuesResolving()
+    issues = []
 
     i = 1
     while ( i < length ):
-        url = f"https://api.github.com/repos/apache/spark/commits?per_page=100&page={i}"
+        url = f"https://api.github.com/repos/apache/spark/issues?per_page=100&page={i}"
         token = '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'
         headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
         res = requests.get(url, headers=headers)
 
         if (res.status_code == 200):
+                    issues.append(res)
                     commits.append(res)
         
-        num_Contributors( commits )
-        populateDates ( commits ) 
+        issuesResolving( issues )
+        # num_Contributors( commits )
+        # populateDates ( commits ) 
         
         i += 1
 
@@ -75,15 +75,23 @@ def projectPrediction ():
 
     return 0
 
-def IssuesResolving ():
-    url = "https://api.github.com/repos/prestodb/presto"
+def populateTimes ():
+    
 
-    token = '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'
-    headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
-               , 'Authorization': 'token ' + token }
-    res = requests.get(url, headers=headers)
 
-    print( res.json() )
+    return 0
+
+def issuesResolving ( issues ):
+    for x in issues:
+        for i in x.json(): 
+            date = i['created_at']
+            date1 = i['closed_at']
+
+            print( date1 )
+                
+            date = date.split("T")
+
+            dates.append(date[0])
 
     return 0
 
