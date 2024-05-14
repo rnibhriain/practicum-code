@@ -35,7 +35,7 @@ def codePrediction ():
 # Vulnerability Prediction by Project Metrics                                 #
 ###############################################################################
 def projectPrediction ():
-    url = "https://api.github.com/repos/apache/spark/issues?per_page=100&page=1"
+    url = "https://api.github.com/repos/prestodb/presto/issues?state=closed&per_page=100&page=1"
 
     token = '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'
     headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
@@ -44,18 +44,19 @@ def projectPrediction ():
     print(f"Status code: {res.status_code}")
     print(res.reason)
 
-    print(res.links['last']['url'])
+    print( "hello", res.links['last']['url'])
 
     current = res.links['last']['url'].split("=")
-    print( "the length is: " , current[2])
-    length = int(current[2])
+    print( "current is  ", current)
+    print( "the length is: " , current[3])
+    length = int(current[3])
 
     commits = []
     issues = []
 
     i = 1
     while ( i < length ):
-        url = f"https://api.github.com/repos/apache/spark/issues?per_page=100&page={i}"
+        url = f"https://api.github.com/repos/prestodb/presto/issues?state=closed&per_page=100&page={i}"
         token = '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'
         headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
@@ -87,7 +88,7 @@ def issuesResolving ( issues ):
             date = i['created_at']
             date1 = i['closed_at']
 
-            print( date1 )
+            print( date1 - date )
                 
             date = date.split("T")
 
