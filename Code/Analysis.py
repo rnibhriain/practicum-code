@@ -72,6 +72,7 @@ def projectPrediction ():
         
         i += 1
 
+    issues_over_time()
     #commits_over_time()
 
     return 0
@@ -82,19 +83,84 @@ def populateTimes ():
 
     return 0
 
+numDays = []
+
 def issuesResolving ( issues ):
     for x in issues:
         for i in x.json(): 
-            date = i['created_at']
-            date1 = i['closed_at']
+            date = i[ 'created_at' ]
+            date1 = i[ 'closed_at' ]
+            date = date.split( "T" )[ 0 ]
+            date1 = date1.split( "T" )[ 0 ]
+            dateobj = datetime.strptime( date, "%Y-%m-%d" )
+            date1obj = datetime.strptime( date1, "%Y-%m-%d" )
 
-            print( date1 - date )
+            time = date1obj - dateobj
                 
-            date = date.split("T")
 
-            dates.append(date[0])
+            dates.append( date.split( '-' )[ 0 ] + '-' + date.split( '-' )[ 1 ] )
+            numDays.append( time.days )
 
     return 0
+
+nums = dict()
+avg = dict()
+
+def issues_over_time () :
+    i = -1
+
+    print(len(dates))
+    print(len(numDays))
+
+    for i in range( len( dates ) ):
+        if ( dates[ i ] not in nums ):
+            nums[ dates[ i ] ] = 1 
+            avg[ dates[ i ] ] = numDays[ i ]
+        else:
+            avg[ dates[ i ] ] += numDays[ i ]
+            nums[ dates[ i ] ] += 1
+
+    for x in nums.keys():
+        avg[ x ] = avg[ x ] / nums[ x ]
+
+    print( "check : ", avg.keys() )
+    print( "check : ", nums.values() )
+        
+
+    df = pd.DataFrame({
+        "Dates": avg.keys(),
+        "Count": avg.values()
+    })
+
+    df = df.drop_duplicates()
+
+    figline = px.line(x=df.Dates, y=df.Count)
+
+    fig = go.Figure(data=figline.data)
+
+    fig.update_layout(
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font_color='white',
+        title = f'Commits Over Time'
+    )
+
+    model = ARIMA(df.Count, order=(5,1,0))
+    model_fit = model.fit()
+
+    # plot residual errors
+    residuals = pd.DataFrame(model_fit.resid)
+    residuals.plot(kind='kde')
+    print(residuals.describe())
+    #pyplot.show()
+
+    #figline = px.line(x=df.Dates, y=residuals)
+
+    fig = go.Figure(data=figline.data)
+
+    fig.show()
+
+    return df
 
 dates = []
 counts = []
