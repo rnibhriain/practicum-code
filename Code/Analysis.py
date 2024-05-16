@@ -284,8 +284,8 @@ def vuls_over_time ():
 
     f = plt.figure()
     ax1 = f.add_subplot(121)
-    ax1.set_title('1st Order Differencing')
-    plot_acf(df.Count.diff().dropna(), ax=ax1)
+    ax1.set_title('Actual Values')
+    ax1.plot( df[ 'Dates' ], df[ 'Count' ] )
 
     ax2 = f.add_subplot(122)
 
@@ -296,8 +296,7 @@ def vuls_over_time ():
     print('p-value ', result[1])
 
     result = adfuller(df.Count.diff().diff().dropna())
-    print('p-value ', result[1])
-
+    print('p-value ', result[1] )
 
     # p = 1
     # d = 0
@@ -336,9 +335,9 @@ def main():
     # come up with set list of packages
     # for now lets focus on apache cus idk
     ######################################################
-    projectPrediction()
+    #projectPrediction()
     #codePrediction()
-    #vulPrediction ()
+    vulPrediction ()
 
 if __name__ == "__main__":
     main()
