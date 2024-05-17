@@ -13,19 +13,13 @@ from statsmodels.graphics.tsaplots import *
 from statsmodels.tsa.stattools import adfuller
 import matplotlib.pyplot as plt
 
-# Risk Levels
-# 0 - Not risky < 7 days
-# 1 - Risky > 7 days
-def predictRisk ( package ):
-    
-    # default is 0
-    return 0
-
 ###############################################################################
-# Vulnerability Prediction by Code Metrics                                    #
+# Recursive Algorithm to Find Dependencies                                    #
 ###############################################################################
-def codePrediction ():
-    
+def findDependencies ():
+    # plan for this is to use maven dependency trees
+    # - so create a new maven project with some dependencies
+    # - then attempt to analyse that ( make a graph basically )
 
 
     return 0
@@ -332,12 +326,11 @@ def main():
     print( "Please enter a package you would like to use from our list of packages" )
 
     ######################################################
-    # come up with set list of packages
-    # for now lets focus on apache cus idk
+    # come up with set list of packages                  #
     ######################################################
     #projectPrediction()
-    #codePrediction()
-    vulPrediction ()
+    #vulPrediction ()
+    findDependencies()
 
 if __name__ == "__main__":
     main()
