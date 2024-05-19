@@ -12,17 +12,46 @@ from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.graphics.tsaplots import *
 from statsmodels.tsa.stattools import adfuller
 import matplotlib.pyplot as plt
+import subprocess
 
 ###############################################################################
 # Recursive Algorithm to Find Dependencies                                    #
 ###############################################################################
+dependencies = []
+
 def findDependencies ():
     # plan for this is to use maven dependency trees
     # - so create a new maven project with some dependencies
     # - then attempt to analyse that ( make a graph basically )
+    # subprocess.run( [ "mvn", "dependency:tree", ">", "/dependencies.txt" ] )
+    f = open( "dependencies.txt", "r" )
 
+    print( "These are the dependencies!\n" )
+    for i in f: 
+        if "\\" in i: 
+            dependencies.append( extractLibrary( i ) )
+            print( i )
+
+    print( "Number of Dependencies: ", dependencies, "\n" )
+    for i in dependencies:
+        vulPrediction( i )
+
+    f.close()
 
     return 0
+
+def extractLibrary ( dependency ):
+    
+    current = dependency.split( "\\- " )
+
+    print( len( current[ 0 ] ) )
+
+    if "." in current[ 1 ].split( ":" )[ 0 ]:
+        current = current[ 1 ].split( ":" )[ 0 ].split( "." )[ 1 ]
+    else:
+        current = current[ 1 ].split( ":" )[ 0 ]
+
+    return current
 ###############################################################################
 
 ###############################################################################
@@ -232,9 +261,11 @@ def commits_over_time () :
 ###############################################################################
 # Vulnerability Prediction by NVD Data                                        #
 ###############################################################################
-def vulPrediction ():
-    response = requests.get( "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=apache" )
-    print( response.status_code )
+def vulPrediction ( keywords ):
+    print( keywords )
+    url = "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=" + keywords
+    response = requests.get( url )
+    print( response.json() )
 
     commits = []
 
