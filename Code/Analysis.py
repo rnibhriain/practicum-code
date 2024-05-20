@@ -12,12 +12,19 @@ from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.graphics.tsaplots import *
 from statsmodels.tsa.stattools import adfuller
 import matplotlib.pyplot as plt
+import networkx as nx
 import subprocess
+from pyvis.network import Network
+
+
 
 ###############################################################################
 # Recursive Algorithm to Find Dependencies                                    #
 ###############################################################################
 dependencies = []
+G = nx.Graph()
+currentNode = str()
+length = int()
 
 def findDependencies ():
     # plan for this is to use maven dependency trees
@@ -26,15 +33,32 @@ def findDependencies ():
     # subprocess.run( [ "mvn", "dependency:tree", ">", "/dependencies.txt" ] )
     f = open( "dependencies.txt", "r" )
 
+    global currentNode
+    global length
+
     print( "These are the dependencies!\n" )
     for i in f: 
-        if "\\" in i: 
-            dependencies.append( extractLibrary( i ) )
-            print( i )
+        if "\\-" in i or "+-" in i: 
+            # print( i )
+            library = extractLibrary( i )
+            dependencies.append( library )
+            G.add_node( library )
+            if length == 7:
+                G.add_edge( "project", library )
+                currentNode = library
+            else:
+                G.add_edge( currentNode, library )
+            
 
     print( "Number of Dependencies: ", dependencies, "\n" )
-    for i in dependencies:
-        vulPrediction( i )
+    print( list( G.nodes ) ) 
+
+    #for i in dependencies:
+        #vulPrediction( i )
+
+    net = Network( '500px', '500px' )
+    net.from_nx( G )
+    net.show( 'net.html', notebook=False )
 
     f.close()
 
@@ -42,14 +66,22 @@ def findDependencies ():
 
 def extractLibrary ( dependency ):
     
-    current = dependency.split( "\\- " )
-
-    print( len( current[ 0 ] ) )
-
-    if "." in current[ 1 ].split( ":" )[ 0 ]:
-        current = current[ 1 ].split( ":" )[ 0 ].split( "." )[ 1 ]
+    global length
+    
+    current = dependency.split( "\\" )
+    if "\\-" in dependency:
+        current = dependency.split( "\\-" )
     else:
-        current = current[ 1 ].split( ":" )[ 0 ]
+        current = dependency.split( "+-" )
+
+    length = len( current[ 0 ] )
+
+    print( length )
+
+    if "." in current[ 1 ].split( ":" )[ 1 ]:
+        current = current[ 1 ].split( ":" )[ 1 ].split( "." )[ 1 ]
+    else:
+        current = current[ 1 ].split( ":" )[ 1 ]
 
     return current
 ###############################################################################

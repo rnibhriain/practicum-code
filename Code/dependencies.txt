@@ -1,17 +1,28 @@
 [INFO] Scanning for projects...
 [INFO] 
-[INFO] ----------------------< com.mycompany.app:my-app >----------------------
-[INFO] Building my-app 1.0-SNAPSHOT
+[INFO] --------------------------< org.youtube:form >--------------------------
+[INFO] Building form 1.0-SNAPSHOT
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
-[INFO] --- dependency:3.6.0:tree (default-cli) @ my-app ---
-[INFO] com.mycompany.app:my-app:jar:1.0-SNAPSHOT
-[INFO] \- junit:junit:jar:4.11:test
-[INFO]    \- org.hamcrest:hamcrest-core:jar:1.3:test
+[INFO] --- dependency:3.6.0:tree (default-cli) @ form ---
+[INFO] org.youtube:form:jar:1.0-SNAPSHOT
+[INFO] +- org.openjfx:javafx-controls:jar:16:compile
+[INFO] |  +- org.openjfx:javafx-controls:jar:win:16:compile
+[INFO] |  \- org.openjfx:javafx-graphics:jar:16:compile
+[INFO] |     +- org.openjfx:javafx-graphics:jar:win:16:compile
+[INFO] |     \- org.openjfx:javafx-base:jar:16:compile
+[INFO] |        \- org.openjfx:javafx-base:jar:win:16:compile
+[INFO] +- org.openjfx:javafx-fxml:jar:16:compile
+[INFO] |  \- org.openjfx:javafx-fxml:jar:win:16:compile
+[INFO] +- org.eclipse.persistence:eclipselink:jar:2.7.7:compile
+[INFO] |  +- org.eclipse.persistence:jakarta.persistence:jar:2.2.3:compile
+[INFO] |  \- org.eclipse.persistence:commonj.sdo:jar:2.1.1:compile
+[INFO] +- org.eclipse.persistence:javax.persistence:jar:2.0.0:compile
+[INFO] \- org.postgresql:postgresql:jar:9.3-1102-jdbc41:compile
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  1.936 s
-[INFO] Finished at: 2024-05-18T18:40:47+01:00
+[INFO] Total time:  1.360 s
+[INFO] Finished at: 2024-05-19T20:49:23+01:00
 [INFO] ------------------------------------------------------------------------
