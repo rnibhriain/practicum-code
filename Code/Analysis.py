@@ -25,6 +25,7 @@ dependencies = []
 G = nx.Graph()
 currentNode = str()
 length = int()
+currentNodes = dict()
 
 def findDependencies ():
     # plan for this is to use maven dependency trees
@@ -42,12 +43,19 @@ def findDependencies ():
             # print( i )
             library = extractLibrary( i )
             dependencies.append( library )
-            G.add_node( library )
+            G.add_node( i )
             if length == 7:
-                G.add_edge( "project", library )
-                currentNode = library
+                currentNodes.clear()
+                G.add_edge( "project", i )
+                currentNodes[ length ] = i
             else:
-                G.add_edge( currentNode, library )
+                if currentNodes.get( length ) == None:
+                    currentNodes[ length ] = i 
+                    G.add_edge( currentNodes.get( length - 3 ), i )
+                else: 
+                    print( "hola", currentNodes )
+                    print( currentNodes.get( length - 3 ) )
+                    G.add_edge( currentNodes.get( length - 3 ), i )
             
 
     print( "Number of Dependencies: ", dependencies, "\n" )
@@ -56,7 +64,7 @@ def findDependencies ():
     #for i in dependencies:
         #vulPrediction( i )
 
-    net = Network( '500px', '500px' )
+    net = Network( '1000px', '1000px' )
     net.from_nx( G )
     net.show( 'net.html', notebook=False )
 

@@ -1,2 +1,11 @@
 hamcrest-core,hamcrest/JavaHamcrest
 junit,junit-team/junit4
+postgresql,postgres/postgres
+javafx-controls,
+javafx-graphics,
+javafx-base,
+javafx-fxml,
+eclipselink,
+jakarta.persistence,
+commonj.sdo,
+javax.persistence,
