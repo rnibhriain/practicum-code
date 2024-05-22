@@ -143,7 +143,7 @@ def projectPrediction ( repoUrl ):
         if (res.status_code == 200):
                     issues.append(res)
         
-        #openIssuesResolving( issues )
+        openIssuesResolving( issues )
         
         i += 1
 
@@ -160,9 +160,11 @@ def openIssuesResolving ( issues ):
             dateobj = datetime.strptime( date, "%Y-%m-%d" )
             date1obj = datetime.today()
 
+            date1 = date1obj.strftime( "%Y-%m-%d" )
+
             time = date1obj - dateobj
                 
-            dates.append( date.split( '-' )[ 0 ] + '-' + date.split( '-' )[ 1 ] )
+            dates.append( date1.split( '-' )[ 0 ] + '-' + date1.split( '-' )[ 1 ] )
             numDays.append( time.days )
 
 
