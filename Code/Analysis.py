@@ -17,7 +17,7 @@ import subprocess
 from pyvis.network import Network
 
 ###############################################################################
-# Algorithm to Find Dependencies                                    #
+# SECTION 1: Algorithm to Find Dependencies                                    #
 ###############################################################################
 dependencies = []
 G = nx.Graph()
@@ -25,40 +25,77 @@ currentNode = str()
 length = int()
 currentNodes = dict()
 
+riskScores = dict()
+
 # using Maven dependency tree data (for now) extract and create a dependency graph
 def findDependencies ():
     # plan for this is to use maven dependency trees
     # - so create a new maven project with some dependencies
-    # - then attempt to analyse that ( make a graph basically )
-    # subprocess.run( [ "mvn", "dependency:tree", ">", "/dependencies.txt" ] )
-    f = open( "dependencies.txt", "r" )
+
+    # this command gets the dependencies from a maven project
+    # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
+
+    f = open( "dependencies1.txt", "r" )
 
     global currentNode
     global length
 
-    print( "These are the dependencies!\n" )
+    G.add_node( "PROJECT", color="black",  shape='square' )
+
     for i in f: 
         if "\\-" in i or "+-" in i: 
-            # print( i )
+            
             library = extractLibrary( i )
             dependencies.append( library )
-            G.add_node( i )
+
+            lib = i.strip( "[INFO] /")
+            lib = lib.strip( "| ")
+            lib = lib.strip( "\\- ")
+            lib = lib.strip( "+- ")
+            
+            array = lib.split( ":" )
+
+            lib = ""
+
+            for i in range( len( array ) - 1 ):
+                if i > 1: 
+                    lib += "-" + array[ i ]
+                elif i == 1:
+                    lib += array[ i ]
+                
+            score = 0
+
+            if lib in riskScores:
+                score = riskScores[ lib ]
+
+            else:
+                score = predictRisk( lib, library )
+                riskScores[ lib ] = score
+
+            if score >= 0 and score < 2.5:
+                G.add_node( lib, color='green' )
+            elif score >= 2.5 and score < 5:
+                G.add_node( lib, color='yellow' )
+            elif score >= 5 and score < 7.5:
+                G.add_node( lib, color='orange' )
+            elif score >= 7.5 and score <= 10:
+                G.add_node( lib, color='red' )
+            else:
+                G.add_node( lib, color='grey' )
+
             if length == 7:
                 currentNodes.clear()
-                G.add_edge( "project", i )
-                currentNodes[ length ] = i
+                G.add_edge( "PROJECT", lib )
+                currentNodes[ length ] = lib
             else:
                 if currentNodes.get( length ) == None:
-                    currentNodes[ length ] = i 
-                    G.add_edge( currentNodes.get( length - 3 ), i )
+                    currentNodes[ length ] = lib
+                    G.add_edge( currentNodes.get( length - 3 ), lib )
                 else: 
                     print( "hola", currentNodes )
                     print( currentNodes.get( length - 3 ) )
-                    G.add_edge( currentNodes.get( length - 3 ), i )
+                    G.add_edge( currentNodes.get( length - 3 ), lib )
             
-
-    print( "Number of Dependencies: ", dependencies, "\n" )
-    print( list( G.nodes ) ) 
 
     net = Network( '1000px', '1000px' )
     net.from_nx( G )
@@ -81,8 +118,6 @@ def extractLibrary ( dependency ):
 
     length = len( current[ 0 ] )
 
-    print( length )
-
     if "." in current[ 1 ].split( ":" )[ 1 ]:
         current = current[ 1 ].split( ":" )[ 1 ].split( "." )[ 1 ]
     else:
@@ -91,9 +126,34 @@ def extractLibrary ( dependency ):
     return current
 ###############################################################################
 
+gitScores = dict()
+VulScores = dict()
+
+def predictRisk ( lib, library ):
+    
+    # gitScore = projectPrediction( library )
+    # vulScore = vulPrediction( lib )
+
+    #return vulScore / gitScore
+    return 0
+
 ###############################################################################
-# Vulnerability Prediction by Project Metrics                                 #
+# SECTION 2: Vulnerability Prediction by Project Metrics                                 #
 ###############################################################################
+links = dict()
+
+# This function takes a text file of maven dependencies to their user/repo github links
+def populateDependencyLinks ():
+    f = open( "../Data/github_urls.txt", "r" )
+
+    for i in f:
+        data = i.split( "," )
+        print( data )
+        links[ data[ 0 ] ] = data[ 1 ]
+
+    f.close()
+
+
 def projectPrediction ( repoUrl ):
     issues = []
 
@@ -123,31 +183,9 @@ def projectPrediction ( repoUrl ):
         
         i += 1
 
-
-    # Find Time Issues Have Been Open
-    url = "https://api.github.com/repos/prestodb/presto/issues?state=open&per_page=100&page=1"
-
-    res = requests.get(url, headers=headers)
-
-    current = res.links['last']['url'].split("=")
-    length = int(current[3])
-
-    i = 1
-    while ( i < length ):
-        url = f"https://api.github.com/repos/prestodb/presto/issues?state=open&per_page=100&page={i}"
-        token = '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'
-        headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
-               , 'Authorization': 'token ' + token }
-        res = requests.get(url, headers=headers)
-
-        if (res.status_code == 200):
-                    issues.append(res)
-        
-        openIssuesResolving( issues )
-        
-        i += 1
-
     issues_over_time()
+
+    return 0
 
 numDays = []
 
@@ -188,7 +226,6 @@ def closedIssuesResolving ( issues ):
 nums = dict()
 avg = dict()
 dates = []
-
 
 # Display the length of time to close issues/how long they are open
 def issues_over_time () :
@@ -238,7 +275,7 @@ def issues_over_time () :
 
 
 ###############################################################################
-# Vulnerability Prediction by NVD Data                                        #
+# SECTION 3: Vulnerability Prediction by NVD Data                                        #
 ###############################################################################
 
 
@@ -256,6 +293,8 @@ def vulPrediction ( keywords ):
 
     popDates( commits )
     vuls_over_time()
+
+    return 0
 
 
 # Populate the Dates
@@ -338,14 +377,19 @@ def vuls_over_time ():
     return df
 
 ###############################################################################
-    
+
+
  
 def main():
     
+    # SETUP
+    populateDependencyLinks()
+
+
     # Each of the Sections as Described
 
-    #findDependencies()
-    projectPrediction( "project" )
+    findDependencies()
+    #projectPrediction( "project" )
     #vulPrediction ()
     
 
