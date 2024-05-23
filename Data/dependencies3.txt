@@ -1,0 +1,23 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< com.samuel.cabral:ConnectionFactory >-----------------
+[INFO] Building ConnectionFactory 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- dependency:3.6.0:tree (default-cli) @ ConnectionFactory ---
+[INFO] com.samuel.cabral:ConnectionFactory:jar:1.0.0
+[INFO] +- mysql:mysql-connector-java:jar:8.0.22:compile
+[INFO] |  \- com.google.protobuf:protobuf-java:jar:3.11.4:compile
+[INFO] +- org.junit.jupiter:junit-jupiter-api:jar:5.7.0:test
+[INFO] |  +- org.apiguardian:apiguardian-api:jar:1.1.0:test
+[INFO] |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[INFO] |  \- org.junit.platform:junit-platform-commons:jar:1.7.0:test
+[INFO] \- org.junit.jupiter:junit-jupiter-engine:jar:5.7.0:test
+[INFO]    \- org.junit.platform:junit-platform-engine:jar:1.7.0:test
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.529 s
+[INFO] Finished at: 2024-05-23T16:19:41+01:00
+[INFO] ------------------------------------------------------------------------

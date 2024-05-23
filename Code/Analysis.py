@@ -35,7 +35,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "../Data/dependencies1.txt", "r" )
+    f = open( "../Data/dependencies.txt", "r" )
 
     global currentNode
     global length
@@ -46,6 +46,8 @@ def findDependencies ():
         if "\\-" in i or "+-" in i: 
             
             library = extractLibrary( i )
+            hasLink = library in links
+            print( library, hasLink )
             dependencies.append( library )
 
             lib = i.strip( "[INFO] /")
@@ -90,11 +92,9 @@ def findDependencies ():
             else:
                 if currentNodes.get( length ) == None:
                     currentNodes[ length ] = lib
-                    G.add_edge( currentNodes.get( length - 3 ), lib )
+                    G.add_edge( currentNodes.get( length - 3 ), lib, color='black' )
                 else: 
-                    print( "hola", currentNodes )
-                    print( currentNodes.get( length - 3 ) )
-                    G.add_edge( currentNodes.get( length - 3 ), lib )
+                    G.add_edge( currentNodes.get( length - 3 ), lib, color='black' )
             
 
     net = Network( '1000px', '1000px' )
