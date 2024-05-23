@@ -153,12 +153,16 @@ def populateDependencyLinks ():
 
     f.close()
 
+gitURLScores = dict()
 
 def projectPrediction ( repoUrl ):
     issues = []
 
+    if repoUrl in gitURLScores:
+        return gitURLScores[ repoUrl ]
+    
     # Find Time to Close Issues
-    url = "https://api.github.com/repos/prestodb/presto/issues?state=closed&per_page=100&page=1"
+    url = "https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page=1"
 
     token = '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'
     headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
@@ -170,7 +174,7 @@ def projectPrediction ( repoUrl ):
 
     i = 1
     while ( i < length ):
-        url = f"https://api.github.com/repos/prestodb/presto/issues?state=closed&per_page=100&page={i}"
+        url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page={i}"
         token = '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'
         headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
@@ -385,12 +389,7 @@ def main():
     # SETUP
     populateDependencyLinks()
 
-
-    # Each of the Sections as Described
-
     findDependencies()
-    #projectPrediction( "project" )
-    #vulPrediction ()
     
 
 if __name__ == "__main__":
