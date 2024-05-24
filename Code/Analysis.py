@@ -35,7 +35,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "../Data/dependencies2.txt", "r" )
+    f = open( "../Data/dependencies3.txt", "r" )
 
     global currentNode
     global length
