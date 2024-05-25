@@ -46,8 +46,7 @@ def findDependencies ():
         if "\\-" in i or "+-" in i: 
             
             library = extractLibrary( i )
-            #hasLink = library in links
-            print( library )
+
             dependencies.append( library )
 
             lib = i.strip( "[INFO] /")
@@ -74,7 +73,9 @@ def findDependencies ():
                 score = predictRisk( lib, library )
                 riskScores[ lib ] = score
 
-            if score >= 0 and score < 2.5:
+            if score < 0:
+                G.add_node( lib, color='grey' )
+            elif score >= 0 and score < 2.5:
                 G.add_node( lib, color='green' )
             elif score >= 2.5 and score < 5:
                 G.add_node( lib, color='yellow' )
@@ -128,11 +129,13 @@ VulScores = dict()
 
 def predictRisk ( lib, library ):
     
-    # gitScore = projectPrediction( library )
+    gitScore = projectPrediction( library )
+    if gitScore != -1:
+         print ( library )
     # vulScore = vulPrediction( lib )
 
     #return vulScore / gitScore
-    return 0
+    return -1
 
 ###############################################################################
 # SECTION 2: Vulnerability Prediction by Project Metrics                                 #
@@ -145,7 +148,7 @@ def populateDependencyLinks ():
 
     for i in f:
         data = i.split( "," )
-        print( data )
+        data[ 1 ] = data[ 1 ].replace("\n", "")
         links[ data[ 0 ] ] = data[ 1 ]
 
     f.close()
@@ -159,12 +162,17 @@ def projectPrediction ( repoUrl ):
         return gitURLScores[ repoUrl ]
     
     # Find Time to Close Issues
-    url = "https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page=1"
+    url = f"https://api.github.com/repos/{links[ repoUrl ]}/issues?state=closed&per_page=100&page=1"
 
     token = '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'
     headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
     res = requests.get(url, headers=headers)
+
+    if res.status_code != 404:
+        return -1
+    else: 
+        return 1
 
     current = res.links['last']['url'].split("=")
     length = int(current[3])
