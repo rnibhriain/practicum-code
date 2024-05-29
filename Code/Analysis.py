@@ -35,7 +35,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "../Data/dependencies3.txt", "r" )
+    f = open( "../Data/dependencies2.txt", "r" )
 
     global currentNode
     global length
@@ -129,9 +129,9 @@ VulScores = dict()
 
 def predictRisk ( lib, library ):
     
-    gitScore = projectPrediction( library )
-    if gitScore != -1:
-         print ( library )
+    gitScore = gatherData( library )
+    #if gitScore != -1:
+         #print ( library )
     # vulScore = vulPrediction( lib )
 
     #return vulScore / gitScore
@@ -155,8 +155,14 @@ def populateDependencyLinks ():
 
 gitURLScores = dict()
 
-def projectPrediction ( repoUrl ):
+def gatherData ( repoUrl ):
     issues = []
+
+    avg.clear()
+    nums.clear()
+    
+    #repoUrl = 'apiguardian-api'
+    print( repoUrl )
 
     if repoUrl in gitURLScores:
         return gitURLScores[ repoUrl ]
@@ -169,17 +175,21 @@ def projectPrediction ( repoUrl ):
                , 'Authorization': 'token ' + token }
     res = requests.get(url, headers=headers)
 
-    if res.status_code != 404:
+    if res.status_code == 404:
         return -1
-    else: 
-        return 1
+    
+    length = 1
+    print( len( res.json() ) )
 
-    current = res.links['last']['url'].split("=")
-    length = int(current[3])
+    if ( len( res.json() ) < 100 ):
+        length = 1
+    else: 
+        current = res.links['last']['url'].split("=")
+        length = int(current[3])
 
     i = 1
     while ( i < length ):
-        url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page={i}"
+        url = f"https://api.github.com/repos/{links[ repoUrl ]}/issues?state=closed&per_page=100&page={i}"
         token = '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'
         headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
@@ -192,11 +202,17 @@ def projectPrediction ( repoUrl ):
         
         i += 1
 
-    issues_over_time()
+    projectPrediction( issues_over_time() )
 
     return 0
 
 numDays = []
+
+def projectPrediction ( df ):
+    
+    print( "Starting Prediction...")
+
+    return -1
 
 # Find the Time an Issue Has Been Open
 def openIssuesResolving ( issues ):
@@ -251,8 +267,6 @@ def issues_over_time () :
     for x in nums.keys():
         avg[ x ] = avg[ x ] / nums[ x ]
 
-    print( "check : ", avg.keys() )
-    print( "check : ", avg.values() )
         
 
     df = pd.DataFrame({
