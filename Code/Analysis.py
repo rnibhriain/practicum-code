@@ -17,7 +17,7 @@ import subprocess
 from pyvis.network import Network
 
 ###############################################################################
-# SECTION 1: Algorithm to Find Dependencies                                    #
+# SECTION 1: Algorithm to Find Dependencies                                   #
 ###############################################################################
 dependencies = []
 G = nx.Graph()
@@ -129,7 +129,9 @@ VulScores = dict()
 
 def predictRisk ( lib, library ):
     
-    gitScore = gatherData( library )
+    print( links[ library ] )
+    gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
+
     #if gitScore != -1:
          #print ( library )
     # vulScore = vulPrediction( lib )
@@ -154,21 +156,24 @@ def populateDependencyLinks ():
     f.close()
 
 gitURLScores = dict()
+numDays = []
+nums = dict()
+avg = dict()
+dates = []
+
 
 def gatherData ( repoUrl ):
     issues = []
 
     avg.clear()
     nums.clear()
-    
-    #repoUrl = 'apiguardian-api'
-    print( repoUrl )
+    dates.clear()
 
     if repoUrl in gitURLScores:
         return gitURLScores[ repoUrl ]
     
     # Find Time to Close Issues
-    url = f"https://api.github.com/repos/{links[ repoUrl ]}/issues?state=closed&per_page=100&page=1"
+    url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page=1"
 
     token = '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'
     headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
@@ -179,17 +184,19 @@ def gatherData ( repoUrl ):
         return -1
     
     length = 1
-    print( len( res.json() ) )
 
-    if ( len( res.json() ) < 100 ):
+    if ( len( res.json() ) == 0 ):
+        return -1
+    elif ( len( res.json() ) < 100 ):
         length = 1
+
     else: 
         current = res.links['last']['url'].split("=")
         length = int(current[3])
 
     i = 1
-    while ( i < length ):
-        url = f"https://api.github.com/repos/{links[ repoUrl ]}/issues?state=closed&per_page=100&page={i}"
+    while ( i <= length ):
+        url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page={i}"
         token = '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'
         headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
@@ -203,10 +210,8 @@ def gatherData ( repoUrl ):
         i += 1
 
     projectPrediction( issues_over_time() )
-
     return 0
 
-numDays = []
 
 def projectPrediction ( df ):
     
@@ -244,13 +249,8 @@ def closedIssuesResolving ( issues ):
 
             time = date1obj - dateobj
                 
-
             dates.append( date1.split( '-' )[ 0 ] + '-' + date1.split( '-' )[ 1 ] )
             numDays.append( time.days )
-
-nums = dict()
-avg = dict()
-dates = []
 
 # Display the length of time to close issues/how long they are open
 def issues_over_time () :
@@ -264,10 +264,9 @@ def issues_over_time () :
             avg[ dates[ i ] ] += numDays[ i ]
             nums[ dates[ i ] ] += 1
 
+
     for x in nums.keys():
         avg[ x ] = avg[ x ] / nums[ x ]
-
-        
 
     df = pd.DataFrame({
         "Dates": avg.keys(),
@@ -275,6 +274,7 @@ def issues_over_time () :
     })
 
     df = df.drop_duplicates()
+    df.sort_values( by = 'Dates', ascending =  True, inplace = True )
 
     figline = px.line(x=df.Dates, y=df.Count)
 
