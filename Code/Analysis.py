@@ -68,11 +68,11 @@ def findDependencies ():
 
             if lib in riskScores:
                 score = riskScores[ lib ]
-
             else:
                 score = predictRisk( lib, library )
                 riskScores[ lib ] = score
 
+            # picking colour for the current nodes
             if score < 0:
                 G.add_node( lib, color='grey' )
             elif score >= 0 and score < 2.5:
@@ -86,6 +86,8 @@ def findDependencies ():
             else:
                 G.add_node( lib, color='grey' )
 
+
+            # this is one of the immediate nodes to the project itself
             if length == 7:
                 currentNodes.clear()
                 G.add_edge( "PROJECT", lib )
@@ -131,13 +133,14 @@ def predictRisk ( lib, library ):
     
     print( links[ library ] )
     gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
+    return gitURLScores[ links[ library ] ]
 
     #if gitScore != -1:
          #print ( library )
     # vulScore = vulPrediction( lib )
 
     #return vulScore / gitScore
-    return -1
+    #return -1
 
 ###############################################################################
 # SECTION 2: Vulnerability Prediction by Project Metrics                                 #
@@ -209,13 +212,44 @@ def gatherData ( repoUrl ):
         
         i += 1
 
-    projectPrediction( issues_over_time() )
-    return 0
+    return projectPrediction( issues_over_time() )
 
 
 def projectPrediction ( df ):
     
     print( "Starting Prediction...")
+
+    f = plt.figure()
+    ax1 = f.add_subplot(121)
+    ax1.set_title('Actual Values')
+    ax1.plot( df[ 'Dates' ], df[ 'Count' ] )
+
+    ax2 = f.add_subplot(122)
+
+    # ensure that the values are not constant
+    if len( df[ 'Count' ].unique() ) == 1:
+        return -1
+    
+    result = adfuller(df.Count.dropna())
+    print('p-value ', result[1])
+
+    result = adfuller(df.Count.diff().dropna())
+    print('p-value ', result[1])
+
+    result = adfuller(df.Count.diff().diff().dropna())
+    print('p-value ', result[1] )
+
+    # p = 1
+    # d = 0
+    # q = 1
+
+    arima_model = ARIMA(df.Count, order=(1, 0, 1))
+    model = arima_model.fit()
+    print(model.summary())
+    plot_predict(model, ax = ax2)
+    plt.show()
+
+    print(model.get_prediction())
 
     return -1
 
