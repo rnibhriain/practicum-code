@@ -35,7 +35,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "../Data/dependencies2.txt", "r" )
+    f = open( "../Data/dependencies3.txt", "r" )
 
     global currentNode
     global length
@@ -135,8 +135,6 @@ def predictRisk ( lib, library ):
     gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
     return gitURLScores[ links[ library ] ]
 
-    #if gitScore != -1:
-         #print ( library )
     # vulScore = vulPrediction( lib )
 
     #return vulScore / gitScore
@@ -243,7 +241,7 @@ def projectPrediction ( df ):
     # d = 0
     # q = 1
 
-    arima_model = ARIMA(df.Count, order=(1, 0, 1))
+    arima_model = ARIMA( df.Count, order=(1, 0, 1), dates=df.Dates )
     model = arima_model.fit()
     print(model.summary())
     plot_predict(model, ax = ax2)
@@ -307,10 +305,21 @@ def issues_over_time () :
         "Count": avg.values()
     })
 
-    df = df.drop_duplicates()
-    df.sort_values( by = 'Dates', ascending =  True, inplace = True )
+    df.sort_values( by = 'Dates', ascending = True, inplace = True )
 
-    figline = px.line(x=df.Dates, y=df.Count)
+    idx = pd.date_range( df.Dates.min(), df.Dates.max(), freq = 'M' )
+
+    df.set_index( df.Dates )
+
+    for i in idx:
+        current  = pd.to_datetime( i )
+        current = current.strftime( format = "%Y-%m" )
+        if current not in df[ 'Dates' ].unique():
+            df = pd.concat( [ pd.DataFrame( [ [ current, 0 ] ], columns = df.columns ), df ], ignore_index = True )
+
+    df.sort_values( by = 'Dates', ascending = True, inplace = True )
+
+    figline = px.line( x = df.index, y=df.Count)
 
     fig = go.Figure(data=figline.data)
 
@@ -321,7 +330,7 @@ def issues_over_time () :
         title = f'Commits Over Time'
     )
 
-    fig = go.Figure(data=figline.data)
+    fig = go.Figure( data = figline.data )
 
     fig.show()
 
