@@ -404,30 +404,19 @@ def vuls_over_time ():
     ax1.set_title('Actual Values')
     ax1.plot( df[ 'Dates' ], df[ 'Count' ] )
 
-    ax2 = f.add_subplot(122)
+    idx = pd.date_range( df.Dates.min(), df.Dates.max(), freq = 'M' )
 
-    result = adfuller(df.Count.dropna())
-    print('p-value ', result[1])
+    df.set_index( df.Dates )
 
-    result = adfuller(df.Count.diff().dropna())
-    print('p-value ', result[1])
+    for i in idx:
+        current  = pd.to_datetime( i )
+        current = current.strftime( format = "%Y-%m" )
+        if current not in df[ 'Dates' ].unique():
+            df = pd.concat( [ pd.DataFrame( [ [ current, 0 ] ], columns = df.columns ), df ], ignore_index = True )
 
-    result = adfuller(df.Count.diff().diff().dropna())
-    print('p-value ', result[1] )
+    df.sort_values( by = 'Dates', ascending = True, inplace = True )
 
-    # p = 1
-    # d = 0
-    # q = 1
-
-    arima_model = ARIMA(df.Count, order=(1, 0, 1))
-    model = arima_model.fit()
-    print(model.summary())
-    plot_predict(model, ax = ax2)
-    plt.show()
-
-    print(model.get_prediction())
-
-    figline = px.line(x=df.Dates, y=df.Count)
+    figline = px.line( x = df.index, y=df.Count)
 
     fig = go.Figure(data=figline.data)
 
@@ -435,8 +424,10 @@ def vuls_over_time ():
         plot_bgcolor='black',
         paper_bgcolor='black',
         font_color='white',
-        title = f'Vulnerabilities Over Time'
+        title = f'Commits Over Time'
     )
+
+    fig = go.Figure( data = figline.data )
 
     fig.show()
 
