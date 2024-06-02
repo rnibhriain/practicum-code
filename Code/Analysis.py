@@ -35,7 +35,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "../Data/dependencies3.txt", "r" )
+    f = open( "../Data/dependencies2.txt", "r" )
 
     global currentNode
     global length
@@ -311,7 +311,7 @@ def issues_over_time () :
 
     df.sort_values( by = 'Dates', ascending = True, inplace = True )
 
-    idx = pd.date_range( df.Dates.min(), df.Dates.max(), freq = 'M' )
+    idx = pd.date_range( df.Dates.min(), datetime.today(), freq = 'M' )
 
     df.set_index( df.Dates )
 
@@ -337,6 +337,8 @@ def issues_over_time () :
     fig = go.Figure( data = figline.data )
 
     fig.show()
+
+    print( df )
 
     return df
 
