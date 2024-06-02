@@ -1,0 +1,87 @@
+\documentclass[10pt, onecolumn]{IEEEtran}
+
+\usepackage{etoolbox}
+\usepackage{scrextend}
+
+% remove \centering from \section
+\patchcmd{\section}{\centering}{}{}{}
+
+\begin{document}
+\title{An Analysis of Risk\\ in Open-Source Projects}
+
+\author{\IEEEauthorblockN{Róisín Ní Bhriain}
+\IEEEauthorblockA{\\Email: roisin.nibhriain3@mail.dcu.ie\\
+                    Student Number: 23269640\\}
+\and
+\IEEEauthorblockA{Sneha Dechamma Mallengada Suresh\\
+    Email: sneha.mallengadasuresh3@mail.dcu.ie\\
+    Student Number: 23262168\\}}
+
+
+\maketitle
+
+\date{2024-07-23}
+
+
+\begin{description}
+    \item[]
+    \begin{center}
+        \item[\textbf{Technical Manual - 23-07-2024}] 
+        \end{center}
+    \item[]
+\end{description}
+
+
+
+\begin{abstract}
+\begin{addmargin}[4em]{4em}
+This paper explores the methods used in the prediction of risk when using open-source software. There are a number of methods used and the aim is to combine these to give a more comprehensive view of the risks in using a particular open-source project. We examine the literature to decide on an appropriate prediction algorithm for each section. We provide a graph of the final results which can be used to aid in finding where the risk lies in the dependency trees. 
+\end{addmargin}
+\end{abstract}
+
+
+\section{Introduction}
+
+
+\section{Related Work}
+
+\section{Datasets}
+
+\section{Method}
+This section explores the prediction of risk methods that we used.
+
+\subsection{Finding Dependencies Algorithm}
+To find dependencies of different projects we focused Maven dependency trees. 
+
+\subsection{Project Meta-Data Prediction}
+
+\subsection{Vulnerability Database Prediction}
+
+\section{Evaluation}
+
+\section{Results}
+
+
+\section{Conclusions \& Further Work}
+The conclusion goes here.
+
+\begin{thebibliography}{1}
+
+\bibitem{IEEEhowto:kopka}
+H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
+  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
+
+\end{thebibliography}
+
+\appendices
+\section{Graphs}
+This section contains other important graphs that we did not include in the main body of the project.
+
+
+\ifCLASSOPTIONcaptionsoff
+  \newpage
+\fi
+
+\end{document}
+
+
