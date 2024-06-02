@@ -217,6 +217,8 @@ def projectPrediction ( df ):
     
     print( "Starting Prediction...")
 
+    df.index = pd.DatetimeIndex(df.Dates).to_period('M')
+
     f = plt.figure()
     ax1 = f.add_subplot(121)
     ax1.set_title('Actual Values')
@@ -237,11 +239,13 @@ def projectPrediction ( df ):
     result = adfuller(df.Count.diff().diff().dropna())
     print('p-value ', result[1] )
 
+    print( df )
+
     # p = 1
     # d = 0
     # q = 1
 
-    arima_model = ARIMA( df.Count, order=(1, 0, 1), dates=df.Dates )
+    arima_model = ARIMA( df.Count, order=(1, 0, 1), dates= df.Dates, freq='MS' )
     model = arima_model.fit()
     print(model.summary())
     plot_predict(model, ax = ax2)
