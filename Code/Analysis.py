@@ -319,7 +319,7 @@ def issues_over_time () :
 
     df.sort_values( by = 'Dates', ascending = True, inplace = True )
 
-    figline = px.line( x = df.index, y=df.Count)
+    figline = px.line( x = df.Dates, y=df.Count)
 
     fig = go.Figure(data=figline.data)
 
@@ -414,6 +414,8 @@ def vuls_over_time ():
         if current not in df[ 'Dates' ].unique():
             df = pd.concat( [ pd.DataFrame( [ [ current, 0 ] ], columns = df.columns ), df ], ignore_index = True )
 
+    df = df[~df.index.duplicated(keep='first')]
+
     df.sort_values( by = 'Dates', ascending = True, inplace = True )
 
     figline = px.line( x = df.index, y=df.Count)
@@ -430,6 +432,8 @@ def vuls_over_time ():
     fig = go.Figure( data = figline.data )
 
     fig.show()
+
+    
 
     return df
 
