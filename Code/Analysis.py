@@ -69,7 +69,7 @@ def findDependencies ():
             if lib in riskScores:
                 score = riskScores[ lib ]
             else:
-                score = predictRisk( lib, library )
+                score = predictRisk( extractKeywords( lib ), library )
                 riskScores[ lib ] = score
 
             # picking colour for the current nodes
@@ -108,7 +108,7 @@ def findDependencies ():
 
     return 0
 
-# still undecided as to best method for this - in terms of finding keywords
+# extracts library for Github Issues prediction
 def extractLibrary ( dependency ):
     
     global length
@@ -124,6 +124,12 @@ def extractLibrary ( dependency ):
     current = current[ 1 ].split( ":" )[ 1 ]
 
     return current
+
+def extractKeywords ( dependency ):
+    
+    array = []
+
+    return array
 ###############################################################################
 
 gitScores = dict()
@@ -176,7 +182,7 @@ def gatherData ( repoUrl ):
     # Find Time to Close Issues
     url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page=1"
 
-    token = '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'
+    token = ''
     headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
     res = requests.get(url, headers=headers)
@@ -198,7 +204,7 @@ def gatherData ( repoUrl ):
     i = 1
     while ( i <= length ):
         url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page={i}"
-        token = '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'
+        token = ''
         headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
         res = requests.get(url, headers=headers)
@@ -354,19 +360,63 @@ def issues_over_time () :
 # Predict Number of Vulnerabilities Per Month
 def vulPrediction ( keywords ):
     
-    commits = []
+    vulnerabilities = []
+
+    for x in keywords:
+        # Search NVD API using the keywords from the dependencies
+        url = "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=" + x
+        response = requests.get( url )
+
+        for i in response.json()['vulnerabilities']:
+            if i['cve'] not in vulnerabilities:
+                vulnerabilities.append( i['cve'] )
+
+    popDates( vulnerabilities )
+
+
+
+    return( vulnerabilityPrediction( vuls_over_time() ) )
+
+def vulnerabilityPrediction ( df ):
+    print( "Starting Prediction...")
+
+    df.index = pd.DatetimeIndex(df.Dates).to_period('M')
+
+    f = plt.figure()
+    ax1 = f.add_subplot(121)
+    ax1.set_title('Actual Values')
+    ax1.plot( df[ 'Dates' ], df[ 'Count' ] )
+
+    ax2 = f.add_subplot(122)
+
+    # ensure that the values are not constant
+    if len( df[ 'Count' ].unique() ) == 1:
+        return -1
     
-    # Search NVD API using the keywords from the dependencies
-    url = "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=" + keywords
-    response = requests.get( url )
+    result = adfuller(df.Count.dropna())
+    print('p-value ', result[1])
 
-    for i in response.json()['vulnerabilities']:
-        commits.append( i['cve'] )
+    result = adfuller(df.Count.diff().dropna())
+    print('p-value ', result[1])
 
-    popDates( commits )
-    vuls_over_time()
+    result = adfuller(df.Count.diff().diff().dropna())
+    print('p-value ', result[1] )
 
-    return 0
+    print( df )
+
+    # p = 1
+    # d = 0
+    # q = 1
+
+    arima_model = ARIMA( df.Count, order=(1, 0, 1), dates= df.Dates, freq='MS' )
+    model = arima_model.fit()
+    print(model.summary())
+    plot_predict(model, ax = ax2)
+    plt.show()
+
+    print(model.get_prediction())
+
+    return -1
 
 
 # Populate the Dates
@@ -438,8 +488,6 @@ def vuls_over_time ():
     fig = go.Figure( data = figline.data )
 
     fig.show()
-
-    
 
     return df
 
