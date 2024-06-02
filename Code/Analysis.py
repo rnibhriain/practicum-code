@@ -182,7 +182,7 @@ def gatherData ( repoUrl ):
     # Find Time to Close Issues
     url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page=1"
 
-    token = ''
+    token = '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'
     headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
     res = requests.get(url, headers=headers)
@@ -204,7 +204,7 @@ def gatherData ( repoUrl ):
     i = 1
     while ( i <= length ):
         url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page={i}"
-        token = ''
+        token = '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'
         headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
         res = requests.get(url, headers=headers)
