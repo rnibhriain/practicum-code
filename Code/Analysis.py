@@ -35,7 +35,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "../Data/dependencies2.txt", "r" )
+    f = open( "../Data/dependencies1.txt", "r" )
 
     global currentNode
     global length
@@ -223,11 +223,11 @@ def projectPrediction ( df ):
     
     print( "Starting Prediction...")
 
-    df.index = pd.DatetimeIndex(df.Dates).to_period('M')
+    df.index = pd.DatetimeIndex( df.Dates ).to_period( 'M' )
 
     f = plt.figure()
-    ax1 = f.add_subplot(121)
-    ax1.set_title('Actual Values')
+    ax1 = f.add_subplot( 121 )
+    ax1.set_title( 'Actual Values' )
     ax1.plot( df[ 'Dates' ], df[ 'Count' ] )
 
     ax2 = f.add_subplot(122)
@@ -235,29 +235,45 @@ def projectPrediction ( df ):
     # ensure that the values are not constant
     if len( df[ 'Count' ].unique() ) == 1:
         return -1
+
+    p, d, q = 0
+
+    # Ensuring that the data is stationary
+    data = df[ 'Count' ]
+
+    result = adfuller( data )
+
+    print( 'ADF Statistic: %f' % result[ 0 ] )
+
+    print( 'p-value: %f' % result[ 1 ] )
+
+    while result[ 1 ] > 0.05:
+        
+        data = data.diff().dropna()
+        result = adfuller( data )
+
+        print( 'ADF Statistic: %f' % result[ 0 ] )
+        print( 'p-value: %f' % result[ 1 ] )
+
+        d += 1
+
+    print( "value of p parametr:", p )
+    print( "value of d parametr:", d )
+    print( "value of q parametr:", q )
     
-    result = adfuller(df.Count.dropna())
-    print('p-value ', result[1])
+    # finding p, d, q TODO
 
-    result = adfuller(df.Count.diff().dropna())
-    print('p-value ', result[1])
-
-    result = adfuller(df.Count.diff().diff().dropna())
-    print('p-value ', result[1] )
-
-    print( df )
-
-    # p = 1
-    # d = 0
-    # q = 1
-
-    arima_model = ARIMA( df.Count, order=(1, 0, 1), dates= df.Dates, freq='MS' )
+    arima_model = ARIMA( data, order = ( p, d, q ), dates= df.Dates, freq ='MS' )
     model = arima_model.fit()
-    print(model.summary())
-    plot_predict(model, ax = ax2)
+    
+    plot_predict( model, ax = ax2 )
     plt.show()
 
-    print(model.get_prediction())
+    # Evaluating Prediction TODO
+
+    # print(model.summary())
+
+    # print(model.get_prediction())
 
     return -1
 
@@ -343,8 +359,6 @@ def issues_over_time () :
     fig = go.Figure( data = figline.data )
 
     fig.show()
-
-    print( df )
 
     return df
 
