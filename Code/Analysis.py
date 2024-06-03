@@ -5,6 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from pmdarima.arima import *
+from pmdarima.arima import auto_arima
 from pmdarima import preprocessing
 from scipy import stats
 from scipy.stats import skew
@@ -236,7 +237,9 @@ def projectPrediction ( df ):
     if len( df[ 'Count' ].unique() ) == 1:
         return -1
 
-    p, d, q = 0
+    p = 0
+    d = 0
+    q = 0
 
     # Ensuring that the data is stationary
     data = df[ 'Count' ]
@@ -257,13 +260,15 @@ def projectPrediction ( df ):
 
         d += 1
 
-    print( "value of p parametr:", p )
-    print( "value of d parametr:", d )
-    print( "value of q parametr:", q )
+    autoparameters = auto_arima( y = data, seasonal = False )
+
+    print( "value of p parameter:", p )
+    print( "value of d parameter:", d )
+    print( "value of q parameter:", q )
     
     # finding p, d, q TODO
 
-    arima_model = ARIMA( data, order = ( p, d, q ), dates= df.Dates, freq ='MS' )
+    arima_model = ARIMA( data, order = ( 1, d, 1 ), dates= df.Dates, freq ='MS' )
     model = arima_model.fit()
     
     plot_predict( model, ax = ax2 )
