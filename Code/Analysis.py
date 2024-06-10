@@ -136,6 +136,7 @@ def extractKeywords ( dependency ):
 gitScores = dict()
 VulScores = dict()
 
+# leave this customisable
 def predictRisk ( lib, library ):
     
     print( links[ library ] )
@@ -148,7 +149,7 @@ def predictRisk ( lib, library ):
     #return -1
 
 ###############################################################################
-# SECTION 2: Vulnerability Prediction by Project Metrics                                 #
+# SECTION 2: Vulnerability Prediction by Project Metrics                      #
 ###############################################################################
 links = dict()
 
