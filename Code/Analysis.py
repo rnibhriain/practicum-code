@@ -6,8 +6,6 @@ import plotly.graph_objects as go
 import pandas as pd
 from pmdarima.arima import *
 from pmdarima.arima import auto_arima
-from pmdarima import preprocessing
-from scipy import stats
 from scipy.stats import skew
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.graphics.tsaplots import *
@@ -36,7 +34,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "../Data/dependencies1.txt", "r" )
+    f = open( "../Data/dependencies2.txt", "r" )
 
     global currentNode
     global length
@@ -263,13 +261,18 @@ def projectPrediction ( df ):
 
     autoparameters = auto_arima( y = data, seasonal = False )
 
+    order = autoparameters.get_params()[ 'order' ]
+
+    p = order[ 0 ]
+    q = order[ 2 ]
+
     print( "value of p parameter:", p )
     print( "value of d parameter:", d )
     print( "value of q parameter:", q )
     
     # finding p, d, q TODO
 
-    arima_model = ARIMA( data, order = ( 1, d, 1 ), dates= df.Dates, freq ='MS' )
+    arima_model = ARIMA( data, order = ( p, d, q ), dates = df.Dates, freq ='MS' )
     model = arima_model.fit()
     
     plot_predict( model, ax = ax2 )
