@@ -99,12 +99,12 @@ xmlunit-core,xmlunit/xmlunit
 protobuf-java,protocolbuffers/protobuf
 javax.jms-api,javaee/javax.jms
 log4j-core,apache/logging-log4j2
-log4j-kit,
-log4j-plugins,
-log4j-jms,
-log4j-jndi,
-log4j-layout-jackson-json,
-log4j-layout-jackson-xml,
+log4j-kit,apache/logging-log4j2
+log4j-plugins,apache/logging-log4j2
+log4j-jms,apache/logging-log4j2
+log4j-jndi,apache/logging-log4j2
+log4j-layout-jackson-json,apache/logging-log4j2
+log4j-layout-jackson-xml,apache/logging-log4j2
 jackson-dataformat-xml,FasterXML/jackson-dataformat-xml
 stax2-api,FasterXML/stax2-api
 woodstox-core,FasterXML/woodstox
@@ -149,6 +149,6 @@ plexus-interpolation,codehaus-plexus/plexus-interpolation
 plexus-component-annotations,sonatype/plexus-containers
 maven-model,apache/maven
 plexus-utils,codehaus-plexus/plexus-utils
-log4j-plugins-test,
+log4j-plugins-test,apache/logging-log4j2
 junit-jupiter-migrationsupport,junit-team/junit5
 junit-vintage-engine,junit-team/junit5

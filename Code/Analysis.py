@@ -42,12 +42,6 @@ def findDependencies ():
     # add central node for the project
     G.add_node( "PROJECT", color="black",  shape='square' )
 
-    for i in f:
-        if "\\-" in i or "+-" in i: 
-            library = extractLibrary( i )
-            if library not in links: 
-                print( extractLibrary( i ), "," )
-
     for i in f: 
         if "\\-" in i or "+-" in i: 
             
