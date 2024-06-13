@@ -113,7 +113,7 @@ def findDependencies ():
                 G.add_node( lib, color ='yellow' )
             elif score >= 5 and score < 7.5:
                 G.add_node( lib, color ='orange' )
-            elif score >= 7.5 and score <= 10:
+            elif score >= 7.5:
                 G.add_node( lib, color ='red' )
             else:
                 G.add_node( lib, color ='grey' )
@@ -164,8 +164,7 @@ def extractKeywords ( dependency ):
     return array
 ###############################################################################
 
-gitScores = dict()
-VulScores = dict()
+vulScores = dict()
 
 # leave this customisable
 def predictRisk ( lib, library ):
@@ -174,10 +173,16 @@ def predictRisk ( lib, library ):
     gitScore = 0
     
     print( links[ library ] )
-    gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
+
+    if links[ library ] not in gitURLScores:
+        gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
     gitScore = gitURLScores[ links[ library ] ]
 
-    # vulScore = vulPrediction( lib )
+    print( links[ library ] )
+
+    if lib not in vulScores:
+        vulScores[ lib ] = vulPrediction( lib )
+    vulScore = vulScores[ lib ]
 
     return ( vulScore + gitScore ) / 2
 
@@ -253,11 +258,14 @@ def gatherData ( repoUrl ):
 
     if currentConfig.issues_or_commits == 'both':
         print( "test" )
+        #issues_prediction = projectPrediction( issues_over_time() ) / currentConfig.num_days_to_fix * 10
+        #commits_prediction = projectPrediction( commits_over_time() ) / currentConfig.num_days_to_fix * 10
+        #return ( issues_prediction + commits_prediction ) / 2
     elif currentConfig.issues_or_commits == 'issues':
         return projectPrediction( issues_over_time() ) / currentConfig.num_days_to_fix * 10
     elif currentConfig.issues_or_commits == 'commits':
-        return projectPrediction( commits_over_time() ) / currentConfig.num_days_to_fix * 10
-    
+        #return projectPrediction( commits_over_time() ) / currentConfig.num_days_to_fix * 10
+        print( "commits" )
 
 
     return -1
@@ -489,8 +497,7 @@ def vulnerabilityPrediction ( df ):
 def popDates ( commits ) :
     print( len(commits))
     for x in commits:
-        date = x[ 'published' ]
-                
+        date = x[ 'published' ]           
         date = date.split("T")
         date = date[0].split("-")
         date = date[0] + '-' + date[1]
