@@ -14,6 +14,43 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import subprocess
 from pyvis.network import Network
+import json
+
+##############################################################################
+# CONFIG OBJECT And SetUp                                                    #
+##############################################################################
+class config:
+
+    def __init__( self, 
+                 num_vuls_min, num_vuls_mid, num_vuls_max, 
+                 num_days_to_fix_min, num_days_to_fix_mid, num_days_to_fix_max,
+                  num_commits_min, num_commits_mid, num_commits_max, issues_or_commits ):
+        self.num_vuls_min = num_vuls_min
+        self.num_vuls_mid = num_vuls_mid
+        self.num_vuls_max = num_vuls_max
+        self.num_days_to_fix_min = num_days_to_fix_min
+        self.num_days_to_fix_mid = num_days_to_fix_mid
+        self.num_days_to_fix_max = num_days_to_fix_max
+        self.num_commits_min = num_commits_min
+        self.num_commits_mid = num_commits_mid
+        self.num_commits_max = num_commits_max
+        self.issues_or_commits = issues_or_commits
+
+def configuration ():
+    
+    f = open( "../Data/config.JSON" )
+    data = json.load( f )
+
+    global currentConfig
+    
+    currentConfig = config( data[ 'num_vuls_min' ], data[ 'num_vuls_mid' ], data[ 'num_vuls_max' ],
+                           data[ 'num_days_to_fix_min' ], data[ 'num_days_to_fix_mid' ], data[ 'num_days_to_fix_max' ],
+                            data[ 'num_commits_min' ], data[ 'num_commits_mid' ], data[ 'num_commits_max' ], data[ 'issues_or_commits' ] )
+
+    f.close()
+
+
+###############################################################################
 
 ###############################################################################
 # SECTION 1: Algorithm to Find Dependencies                                   #
@@ -23,7 +60,7 @@ G = nx.Graph()
 currentNode = str()
 length = int()
 currentNodes = dict()
-
+currentConfig = None
 riskScores = dict()
 
 # using Maven dependency tree data (for now) extract and create a dependency graph
@@ -74,17 +111,17 @@ def findDependencies ():
 
             # picking colour for the current nodes
             if score < 0:
-                G.add_node( lib, color='grey' )
+                G.add_node( lib, color ='grey' )
             elif score >= 0 and score < 2.5:
-                G.add_node( lib, color='green' )
+                G.add_node( lib, color ='green' )
             elif score >= 2.5 and score < 5:
-                G.add_node( lib, color='yellow' )
+                G.add_node( lib, color ='yellow' )
             elif score >= 5 and score < 7.5:
-                G.add_node( lib, color='orange' )
+                G.add_node( lib, color ='orange' )
             elif score >= 7.5 and score <= 10:
-                G.add_node( lib, color='red' )
+                G.add_node( lib, color ='red' )
             else:
-                G.add_node( lib, color='grey' )
+                G.add_node( lib, color ='grey' )
 
 
             # this is one of the immediate nodes to the project itself
@@ -95,14 +132,14 @@ def findDependencies ():
             else:
                 if currentNodes.get( length ) == None:
                     currentNodes[ length ] = lib
-                    G.add_edge( currentNodes.get( length - 3 ), lib, color='black' )
+                    G.add_edge( currentNodes.get( length - 3 ), lib, color ='black' )
                 else: 
-                    G.add_edge( currentNodes.get( length - 3 ), lib, color='black' )
+                    G.add_edge( currentNodes.get( length - 3 ), lib, color ='black' )
             
 
     net = Network( '1000px', '1000px' )
     net.from_nx( G )
-    net.show( 'net.html', notebook=False )
+    net.show( 'net.html', notebook = False )
 
     f.close()
 
@@ -138,14 +175,16 @@ VulScores = dict()
 # leave this customisable
 def predictRisk ( lib, library ):
     
+    vulScore = 0
+    gitScore = 0
+    
     print( links[ library ] )
     gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
-    return gitURLScores[ links[ library ] ]
+    gitScore = gitURLScores[ links[ library ] ]
 
     # vulScore = vulPrediction( lib )
 
-    #return vulScore / gitScore
-    #return -1
+    return ( vulScore + gitScore ) / 2
 
 ###############################################################################
 # SECTION 2: Vulnerability Prediction by Project Metrics                      #
@@ -523,6 +562,7 @@ def main():
     
     # SETUP
     populateDependencyLinks()
+    configuration()
 
     findDependencies()
     

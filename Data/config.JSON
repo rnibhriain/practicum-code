@@ -1,0 +1,12 @@
+{
+  "num_vuls_min": "2",
+  "num_vuls_mid": "4",
+  "num_vuls_max": "6",
+  "num_days_to_fix_min": "3",
+  "num_days_to_fix_mid": "10",
+  "num_days_to_fix_max": "25",
+  "num_commits_min": "3",
+  "num_commits_fix_mid": "10",
+  "num_commits_fix_max": "25",
+  "issues_or_commits": "issues"
+}
