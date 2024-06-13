@@ -164,6 +164,7 @@ def extractKeywords ( dependency ):
     return array
 ###############################################################################
 
+gitURLScores = dict()
 vulScores = dict()
 
 # leave this customisable
@@ -202,7 +203,6 @@ def populateDependencyLinks ():
 
     f.close()
 
-gitURLScores = dict()
 numDays = []
 nums = dict()
 avg = dict()
