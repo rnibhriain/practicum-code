@@ -21,19 +21,13 @@ import json
 ##############################################################################
 class config:
 
-    def __init__( self, 
-                 num_vuls_min, num_vuls_mid, num_vuls_max, 
-                 num_days_to_fix_min, num_days_to_fix_mid, num_days_to_fix_max,
-                  num_commits_min, num_commits_mid, num_commits_max, issues_or_commits ):
-        self.num_vuls_min = num_vuls_min
-        self.num_vuls_mid = num_vuls_mid
-        self.num_vuls_max = num_vuls_max
-        self.num_days_to_fix_min = num_days_to_fix_min
-        self.num_days_to_fix_mid = num_days_to_fix_mid
-        self.num_days_to_fix_max = num_days_to_fix_max
-        self.num_commits_min = num_commits_min
-        self.num_commits_mid = num_commits_mid
-        self.num_commits_max = num_commits_max
+    def __init__( self, num_vuls, 
+                 num_days_to_fix, 
+                 num_commits, 
+                  issues_or_commits ):
+        self.num_vuls = num_vuls
+        self.num_days_to_fix = num_days_to_fix
+        self.num_commits = num_commits
         self.issues_or_commits = issues_or_commits
 
 def configuration ():
@@ -43,9 +37,10 @@ def configuration ():
 
     global currentConfig
     
-    currentConfig = config( data[ 'num_vuls_min' ], data[ 'num_vuls_mid' ], data[ 'num_vuls_max' ],
-                           data[ 'num_days_to_fix_min' ], data[ 'num_days_to_fix_mid' ], data[ 'num_days_to_fix_max' ],
-                            data[ 'num_commits_min' ], data[ 'num_commits_mid' ], data[ 'num_commits_max' ], data[ 'issues_or_commits' ] )
+    currentConfig = config( data[ 'num_vuls' ], 
+                           data[ 'num_days_to_fix' ], 
+                            data[ 'num_commits' ], 
+                            data[ 'issues_or_commits' ] )
 
     f.close()
 
@@ -256,7 +251,16 @@ def gatherData ( repoUrl ):
         
         i += 1
 
-    return projectPrediction( issues_over_time() )
+    if currentConfig.issues_or_commits == 'both':
+        print( "test" )
+    elif currentConfig.issues_or_commits == 'issues':
+        return projectPrediction( issues_over_time() ) / currentConfig.num_days_to_fix * 10
+    elif currentConfig.issues_or_commits == 'commits':
+        return projectPrediction( commits_over_time() ) / currentConfig.num_days_to_fix * 10
+    
+
+
+    return -1
 
 
 def projectPrediction ( df ):
@@ -414,7 +418,6 @@ def issues_over_time () :
 ###############################################################################
 
 
-
 ###############################################################################
 # SECTION 3: Vulnerability Prediction by NVD Data                                        #
 ###############################################################################
@@ -436,9 +439,10 @@ def vulPrediction ( keywords ):
 
     popDates( vulnerabilities )
 
+    numVuls = vulnerabilityPrediction( vuls_over_time() )
 
-
-    return( vulnerabilityPrediction( vuls_over_time() ) )
+    return numVuls / currentConfig.num_vuls * 10
+ 
 
 def vulnerabilityPrediction ( df ):
     print( "Starting Prediction...")
@@ -480,7 +484,6 @@ def vulnerabilityPrediction ( df ):
     print(model.get_prediction())
 
     return -1
-
 
 # Populate the Dates
 def popDates ( commits ) :
