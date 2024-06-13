@@ -23,11 +23,18 @@ This part of the analysis aims to predict how many vulnerabilities will be repor
 - Project Activity Prediction Graphs
 - Vulnerability Database Data Predictions
 
+## Code
+- 
+
 ## Docs
 
 - Proposal Form
 - Literature Review
 - Final Report (In process)
 - Final Presentation (Not Started)
+
+## Data
+- dependencies1-4.txt 
+- config.JSON is the configuration file
 
 ## Project Instructions
