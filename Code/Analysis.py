@@ -24,11 +24,13 @@ class config:
     def __init__( self, num_vuls, 
                  num_days_to_fix, 
                  num_commits, 
-                  issues_or_commits ):
+                  issues_or_commits,
+                   token ):
         self.num_vuls = num_vuls
         self.num_days_to_fix = num_days_to_fix
         self.num_commits = num_commits
         self.issues_or_commits = issues_or_commits
+        self.token = token
 
 def configuration ():
     
@@ -40,7 +42,8 @@ def configuration ():
     currentConfig = config( data[ 'num_vuls' ], 
                            data[ 'num_days_to_fix' ], 
                             data[ 'num_commits' ], 
-                            data[ 'issues_or_commits' ] )
+                            data[ 'issues_or_commits' ],
+                            data[ 'token' ] )
 
     f.close()
 
@@ -216,7 +219,7 @@ def gatherData ( repoUrl ):
     # Find Time to Close Issues
     url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page=1"
 
-    token = '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'
+    token = currentConfig.token
     headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
     res = requests.get(url, headers=headers)
@@ -238,7 +241,6 @@ def gatherData ( repoUrl ):
     i = 1
     while ( i <= length ):
         url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page={i}"
-        token = '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'
         headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
         res = requests.get(url, headers=headers)
