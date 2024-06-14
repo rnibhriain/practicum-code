@@ -101,7 +101,7 @@ def findDependencies ():
             if lib in riskScores:
                 score = riskScores[ lib ]
             else:
-                score = predictRisk( extractKeywords( lib ), library )
+                score = predictRisk( lib, library )
                 riskScores[ lib ] = score
 
             # picking colour for the current nodes
@@ -156,12 +156,6 @@ def extractLibrary ( dependency ):
     current = current[ 1 ].split( ":" )[ 1 ]
 
     return current
-
-def extractKeywords ( dependency ):
-    
-    array = []
-
-    return array
 ###############################################################################
 
 gitURLScores = dict()
@@ -181,9 +175,9 @@ def predictRisk ( lib, library ):
 
     print( links[ library ] )
 
-    if lib not in vulScores:
-        vulScores[ lib ] = vulPrediction( lib )
-    vulScore = vulScores[ lib ]
+    #if lib not in vulScores:
+    #    vulScores[ lib ] = vulPrediction( lib )
+    #vulScore = vulScores[ lib ]
 
     return ( vulScore + gitScore ) / 2
 
@@ -262,7 +256,7 @@ def gatherData ( repoUrl ):
         #commits_prediction = projectPrediction( commits_over_time() ) / currentConfig.num_days_to_fix * 10
         #return ( issues_prediction + commits_prediction ) / 2
     elif currentConfig.issues_or_commits == 'issues':
-        return projectPrediction( issues_over_time() ) / currentConfig.num_days_to_fix * 10
+        return projectPrediction( issues_over_time() ) / int( currentConfig.num_days_to_fix ) * 10
     elif currentConfig.issues_or_commits == 'commits':
         #return projectPrediction( commits_over_time() ) / currentConfig.num_days_to_fix * 10
         print( "commits" )
@@ -492,7 +486,11 @@ def issues_over_time () :
 ###############################################################################
 # SECTION 3: Vulnerability Prediction by NVD Data                                        #
 ###############################################################################
+def extractKeywords ( dependency ):
+    
+    array = []
 
+    return array
 
 # Predict Number of Vulnerabilities Per Month
 def vulPrediction ( keywords ):
