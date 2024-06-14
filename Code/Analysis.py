@@ -271,6 +271,69 @@ def gatherData ( repoUrl ):
     return -1
 
 
+commitDates = []
+
+def populateDates ( commits ) :
+    for x in commits:
+        for i in x.json(): 
+            date = i['commit']['author']['date'].replace("T", " ")
+                
+            date = date.split("T")
+
+            commitDates.append(date[0])
+
+
+def commits_over_time () :
+    finalDates = []
+    currentDate = ''
+    i = -1
+    for x in commitDates: 
+        if (currentDate == x ):
+            
+            counts[ i ] += 1
+        else:
+            finalDates.append(x)
+            counts.append( 1 )
+            currentDate = x
+            i += 1
+
+    df = pd.DataFrame({
+        "Dates": finalDates,
+        "Count": counts
+    })
+
+    df.sort_values( by = 'Dates', ascending = True, inplace = True )
+
+    idx = pd.date_range( df.Dates.min(), datetime.today(), freq = 'M' )
+
+    df.set_index( df.Dates )
+
+    for i in idx:
+        current  = pd.to_datetime( i )
+        current = current.strftime( format = "%Y-%m" )
+        if current not in df[ 'Dates' ].unique():
+            df = pd.concat( [ pd.DataFrame( [ [ current, 0 ] ], columns = df.columns ), df ], ignore_index = True )
+
+    df.sort_values( by = 'Dates', ascending = True, inplace = True )
+
+    figline = px.line( x = df.Dates, y=df.Count)
+
+    fig = go.Figure(data=figline.data)
+
+    fig.update_layout(
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font_color='white',
+        title = f'Commits Over Time'
+    )
+
+    fig = go.Figure( data = figline.data )
+
+    fig.show()
+
+    return df
+
+
 def projectPrediction ( df ):
     
     print( "Starting Prediction...")
