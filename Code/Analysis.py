@@ -208,10 +208,13 @@ dates = []
 
 def gatherData ( repoUrl ):
     issues = []
-
+    commits = []
+    
+    commitDates.clear()
     avg.clear()
     nums.clear()
     dates.clear()
+    commitCounts.clear()
 
     if repoUrl in gitURLScores:
         return gitURLScores[ repoUrl ]
@@ -220,9 +223,9 @@ def gatherData ( repoUrl ):
     url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page=1"
 
     token = currentConfig.token
-    headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
+    headers = { "Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
-    res = requests.get(url, headers=headers)
+    res = requests.get( url, headers = headers )
 
     if res.status_code == 404:
         return -1
@@ -235,72 +238,105 @@ def gatherData ( repoUrl ):
         length = 1
 
     else: 
-        current = res.links['last']['url'].split("=")
-        length = int(current[3])
+        current = res.links[ 'last' ][ 'url' ].split( "=" )
+        length = int( current[ 3 ] )
 
     i = 1
     while ( i <= length ):
         url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page={i}"
-        headers = {"Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
+        headers = { "Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
                , 'Authorization': 'token ' + token }
-        res = requests.get(url, headers=headers)
+        res = requests.get( url, headers = headers )
 
-        if (res.status_code == 200):
-                    issues.append(res)
+        if ( res.status_code == 200 ):
+                    issues.append( res )
         
         closedIssuesResolving( issues )
         
         i += 1
 
+        # Find Time to Close Issues
+    url = f"https://api.github.com/repos/{repoUrl}/commits?per_page=100&page=1"
+
+    headers = { "Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
+               , 'Authorization': 'token ' + token }
+    res = requests.get( url, headers = headers )
+
+    if res.status_code == 404:
+        return -1
+    
+    length = 1
+
+    if ( len( res.json() ) == 0 ):
+        return -1
+    elif ( len( res.json() ) < 100 ):
+        length = 1
+
+    else: 
+        current = res.links[ 'last' ][ 'url' ].split( "=" )
+        length = int( current[ 2 ] )
+
+    i = 1
+    while ( i <= length ):
+        url = f"https://api.github.com/repos/{repoUrl}/commits?per_page=100&page={i}"
+        headers = { "Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
+               , 'Authorization': 'token ' + token }
+        res = requests.get( url, headers = headers )
+
+        if ( res.status_code == 200 ):
+                    commits.append( res )
+        
+        populateDates( commits )
+        
+        i += 1
+
     if currentConfig.issues_or_commits == 'both':
         print( "test" )
-        #issues_prediction = projectPrediction( issues_over_time() ) / currentConfig.num_days_to_fix * 10
-        #commits_prediction = projectPrediction( commits_over_time() ) / currentConfig.num_days_to_fix * 10
-        #return ( issues_prediction + commits_prediction ) / 2
+        issues_prediction = projectPrediction( issues_over_time( repoUrl ) ) / int( currentConfig.num_days_to_fix ) * 10
+        commits_prediction = projectPrediction( commits_over_time( repoUrl ) ) / int( currentConfig.num_commits ) * 10
+        return ( issues_prediction + commits_prediction ) / 2
     elif currentConfig.issues_or_commits == 'issues':
-        return projectPrediction( issues_over_time() ) / int( currentConfig.num_days_to_fix ) * 10
+        return projectPrediction( issues_over_time( repoUrl ) ) / int( currentConfig.num_days_to_fix ) * 10
     elif currentConfig.issues_or_commits == 'commits':
-        #return projectPrediction( commits_over_time() ) / currentConfig.num_days_to_fix * 10
-        print( "commits" )
-
+        return projectPrediction( commits_over_time( repoUrl ) ) / int( currentConfig.num_commits ) * 10
 
     return -1
 
 
 commitDates = []
+commitCounts = dict()
 
 def populateDates ( commits ) :
     for x in commits:
         for i in x.json(): 
             date = i['commit']['author']['date'].replace("T", " ")
                 
-            date = date.split("T")
+            date = date.split(" ") 
 
-            commitDates.append(date[0])
+            commitDates.append( date[ 0 ].split( '-' )[ 0 ] + '-' + date[ 0 ].split( '-' )[ 1 ] )
 
 
-def commits_over_time () :
-    finalDates = []
-    currentDate = ''
+def commits_over_time ( repo ) :
+    print( len( commitDates ), commitDates[ len( commitDates ) - 1 ] )
     i = -1
     for x in commitDates: 
-        if (currentDate == x ):
-            
-            counts[ i ] += 1
+        if ( x in commitCounts ):
+            commitCounts[ x ] += 1
         else:
-            finalDates.append(x)
-            counts.append( 1 )
-            currentDate = x
+            commitCounts[ x ] = 1
             i += 1
 
     df = pd.DataFrame({
-        "Dates": finalDates,
-        "Count": counts
+        "Dates": commitCounts.keys(),
+        "Count": commitCounts.values()
     })
+
+
+    df = df.drop_duplicates() 
 
     df.sort_values( by = 'Dates', ascending = True, inplace = True )
 
-    idx = pd.date_range( df.Dates.min(), datetime.today(), freq = 'M' )
+    idx = pd.date_range( df.Dates.min(), datetime.today(), freq = 'MS' )
 
     df.set_index( df.Dates )
 
@@ -320,12 +356,14 @@ def commits_over_time () :
         plot_bgcolor='black',
         paper_bgcolor='black',
         font_color='white',
-        title = f'Commits Over Time'
+        title = f'Commits Over Time for : {repo}'
     )
 
     fig = go.Figure( data = figline.data )
 
     fig.show()
+
+    print( df )
 
     return df
 
@@ -382,7 +420,6 @@ def projectPrediction ( df ):
     print( "value of q parameter:", q )
     
     # finding p, d, q TODO
-
     arima_model = ARIMA( data, order = ( p, d, q ), dates = df.Dates, freq ='MS' )
     model = arima_model.fit()
     
@@ -431,7 +468,7 @@ def closedIssuesResolving ( issues ):
             numDays.append( time.days )
 
 # Display the length of time to close issues/how long they are open
-def issues_over_time () :
+def issues_over_time ( repo ) :
 
     # average length of time per month
     for i in range( len( dates ) ):
@@ -473,7 +510,7 @@ def issues_over_time () :
         plot_bgcolor='black',
         paper_bgcolor='black',
         font_color='white',
-        title = f'Commits Over Time'
+        title = f'Issue Resolve Time Over Time for: {repo}'
     )
 
     fig = go.Figure( data = figline.data )
