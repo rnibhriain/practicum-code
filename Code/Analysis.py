@@ -69,7 +69,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "../Data/dependencies4.txt", "r" )
+    f = open( "../Data/dependencies1.txt", "r" )
 
     global currentNode
     global length
@@ -410,6 +410,8 @@ def projectPrediction ( df ):
 
     autoparameters = auto_arima( y = data, seasonal = False )
 
+    print( "hello", autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ), "goodbye" )
+
     order = autoparameters.get_params()[ 'order' ]
 
     p = order[ 0 ]
@@ -426,13 +428,30 @@ def projectPrediction ( df ):
     plot_predict( model, ax = ax2 )
     plt.show()
 
+    figline1 = px.line( data_frame= df, x = 'Dates', y = 'Count' ).update_traces( marker = dict( color = 'black' ) )
+    figline2 = px.line( x = autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ), y = autoparameters.fittedvalues() ).update_traces( marker = dict( color = 'red' ) )
+
+    fig = go.Figure()
+
+    #fig.add_trace( figline1.data )
+    #fig.add_trace( figline2.data )
+
+    fig.update_layout(
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font_color='white',
+        title = f'Commits Over Time for : whatver'
+    )
+
+    fig.show()
+
     # Evaluating Prediction TODO
 
     # print(model.summary())
 
     # print(model.get_prediction())
 
-    return -1
+    return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
 
 # Find the Time an Issue Has Been Open
 def openIssuesResolving ( issues ):

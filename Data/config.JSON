@@ -1,7 +1,7 @@
 {
   "num_vuls": "6",
   "num_days_to_fix": "3",
-  "num_commits": "3",
-  "issues_or_commits": "both",
+  "num_commits": "56",
+  "issues_or_commits": "issues",
   "token": "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"
 }
