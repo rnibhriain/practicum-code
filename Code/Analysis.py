@@ -293,12 +293,21 @@ def gatherData ( repoUrl ):
     if currentConfig.issues_or_commits == 'both':
         print( "test" )
         issues_prediction = projectPrediction( issues_over_time( repoUrl ) ) / int( currentConfig.num_days_to_fix ) * 10
-        commits_prediction = projectPrediction( commits_over_time( repoUrl ) ) / int( currentConfig.num_commits ) * 10
-        return ( issues_prediction + commits_prediction ) / 2
+        commits_prediction = projectPrediction( commits_over_time( repoUrl ) ) 
+        if commits_prediction > int( currentConfig.num_commits ):
+            commits_prediction = ( commits_prediction - int( currentConfig.num_commits ) ) / int( currentConfig.num_days_to_fnum_commitsix ) * 10
+            return ( issues_prediction + commits_prediction ) / 2 
+        else:
+            return issues_prediction / 2
     elif currentConfig.issues_or_commits == 'issues':
         return projectPrediction( issues_over_time( repoUrl ) ) / int( currentConfig.num_days_to_fix ) * 10
     elif currentConfig.issues_or_commits == 'commits':
-        return projectPrediction( commits_over_time( repoUrl ) ) / int( currentConfig.num_commits ) * 10
+        commits_prediction = projectPrediction( commits_over_time( repoUrl ) ) 
+        if commits_prediction > int( currentConfig.num_commits ):
+            commits_prediction = ( commits_prediction - int( currentConfig.num_commits ) ) / int( currentConfig.num_commits ) * 10
+            return commits_prediction
+        else:
+            return 0
 
     return -1
 
@@ -568,7 +577,11 @@ def vulPrediction ( keywords ):
 
     numVuls = vulnerabilityPrediction( vuls_over_time() )
 
-    return numVuls / currentConfig.num_vuls * 10
+    if numVuls > int( currentConfig.num_vuls ):
+        numVuls = ( numVuls - int( currentConfig.num_vuls ) ) / int( currentConfig.num_vuls ) * 10
+        return numVuls 
+    else:
+        return 0
  
 
 def vulnerabilityPrediction ( df ):
