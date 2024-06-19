@@ -69,7 +69,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "../Data/dependencies1.txt", "r" )
+    f = open( "../Data/dependencies2.txt", "r" )
 
     global currentNode
     global length
@@ -292,17 +292,17 @@ def gatherData ( repoUrl ):
 
     if currentConfig.issues_or_commits == 'both':
         print( "test" )
-        issues_prediction = projectPrediction( issues_over_time( repoUrl ) ) / int( currentConfig.num_days_to_fix ) * 10
-        commits_prediction = projectPrediction( commits_over_time( repoUrl ) ) 
+        issues_prediction = projectPrediction( issues_over_time( repoUrl ), repoUrl, 'Issues' ) / int( currentConfig.num_days_to_fix ) * 10
+        commits_prediction = projectPrediction( commits_over_time( repoUrl ), repoUrl, 'Commits' ) 
         if commits_prediction > int( currentConfig.num_commits ):
             commits_prediction = ( commits_prediction - int( currentConfig.num_commits ) ) / int( currentConfig.num_days_to_fnum_commitsix ) * 10
             return ( issues_prediction + commits_prediction ) / 2 
         else:
             return issues_prediction / 2
     elif currentConfig.issues_or_commits == 'issues':
-        return projectPrediction( issues_over_time( repoUrl ) ) / int( currentConfig.num_days_to_fix ) * 10
+        return projectPrediction( issues_over_time( repoUrl ), repoUrl, 'Issues' ) / int( currentConfig.num_days_to_fix ) * 10
     elif currentConfig.issues_or_commits == 'commits':
-        commits_prediction = projectPrediction( commits_over_time( repoUrl ) ) 
+        commits_prediction = projectPrediction( commits_over_time( repoUrl ), repoUrl, 'Commits' ) 
         if commits_prediction > int( currentConfig.num_commits ):
             commits_prediction = ( commits_prediction - int( currentConfig.num_commits ) ) / int( currentConfig.num_commits ) * 10
             return commits_prediction
@@ -357,38 +357,16 @@ def commits_over_time ( repo ) :
 
     df.sort_values( by = 'Dates', ascending = True, inplace = True )
 
-    figline = px.line( x = df.Dates, y=df.Count)
-
-    fig = go.Figure(data=figline.data)
-
-    fig.update_layout(
-        plot_bgcolor='black',
-        paper_bgcolor='black',
-        font_color='white',
-        title = f'Commits Over Time for : {repo}'
-    )
-
-    fig = go.Figure( data = figline.data )
-
-    fig.show()
-
     print( df )
 
     return df
 
 
-def projectPrediction ( df ):
+def projectPrediction ( df, repo, type ):
     
     print( "Starting Prediction...")
 
     df.index = pd.DatetimeIndex( df.Dates ).to_period( 'M' )
-
-    f = plt.figure()
-    ax1 = f.add_subplot( 121 )
-    ax1.set_title( 'Actual Values' )
-    ax1.plot( df[ 'Dates' ], df[ 'Count' ] )
-
-    ax2 = f.add_subplot(122)
 
     # ensure that the values are not constant
     if len( df[ 'Count' ].unique() ) == 1:
@@ -432,24 +410,22 @@ def projectPrediction ( df ):
     
     # finding p, d, q TODO
     arima_model = ARIMA( data, order = ( p, d, q ), dates = df.Dates, freq ='MS' )
-    model = arima_model.fit()
     
-    plot_predict( model, ax = ax2 )
-    plt.show()
+    # model = arima_model.fit()
 
-    figline1 = px.line( data_frame= df, x = 'Dates', y = 'Count' ).update_traces( marker = dict( color = 'black' ) )
-    figline2 = px.line( x = autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ), y = autoparameters.fittedvalues() ).update_traces( marker = dict( color = 'red' ) )
+    figline1 = px.line( data_frame= df, x = 'Dates', y = 'Count' )
+    figline2 = px.line( x = autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ), y = autoparameters.fittedvalues() )
 
     fig = go.Figure()
 
-    #fig.add_trace( figline1.data )
-    #fig.add_trace( figline2.data )
+    fig.add_trace( figline1.data[ 0 ] )
+    fig.add_trace( figline2.data[ 0 ] )
 
     fig.update_layout(
         plot_bgcolor='black',
         paper_bgcolor='black',
         font_color='white',
-        title = f'Commits Over Time for : whatver'
+        title = f'{type} Over Time for : {repo}'
     )
 
     fig.show()
@@ -461,22 +437,6 @@ def projectPrediction ( df ):
     # print(model.get_prediction())
 
     return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
-
-# Find the Time an Issue Has Been Open
-def openIssuesResolving ( issues ):
-    for x in issues:
-        for i in x.json(): 
-            date = i[ 'created_at' ]
-            date = date.split( "T" )[ 0 ]
-            dateobj = datetime.strptime( date, "%Y-%m-%d" )
-            date1obj = datetime.today()
-
-            date1 = date1obj.strftime( "%Y-%m-%d" )
-
-            time = date1obj - dateobj
-                
-            dates.append( date1.split( '-' )[ 0 ] + '-' + date1.split( '-' )[ 1 ] )
-            numDays.append( time.days )
 
 
 # Find the Time It Took to Close an Issue
@@ -529,21 +489,6 @@ def issues_over_time ( repo ) :
             df = pd.concat( [ pd.DataFrame( [ [ current, 0 ] ], columns = df.columns ), df ], ignore_index = True )
 
     df.sort_values( by = 'Dates', ascending = True, inplace = True )
-
-    figline = px.line( x = df.Dates, y=df.Count)
-
-    fig = go.Figure(data=figline.data)
-
-    fig.update_layout(
-        plot_bgcolor='black',
-        paper_bgcolor='black',
-        font_color='white',
-        title = f'Issue Resolve Time Over Time for: {repo}'
-    )
-
-    fig = go.Figure( data = figline.data )
-
-    fig.show()
 
     return df
 
