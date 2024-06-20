@@ -69,7 +69,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "../Data/dependencies2.txt", "r" )
+    f = open( "../Data/dependencies4.txt", "r" )
 
     global currentNode
     global length
@@ -120,8 +120,7 @@ def findDependencies ():
                 G.add_node( lib, color ='red' )
             else:
                 G.add_node( lib, color ='grey' )
-
-
+ 
             # this is one of the immediate nodes to the project itself
             if length == 7:
                 currentNodes.clear()
@@ -291,12 +290,20 @@ def gatherData ( repoUrl ):
         i += 1
 
     if currentConfig.issues_or_commits == 'both':
-        print( "test" )
-        issues_prediction = projectPrediction( issues_over_time( repoUrl ), repoUrl, 'Issues' ) / int( currentConfig.num_days_to_fix ) * 10
+        
+        issues_prediction = projectPrediction( issues_over_time( repoUrl ), repoUrl, 'Issues' )
         commits_prediction = projectPrediction( commits_over_time( repoUrl ), repoUrl, 'Commits' ) 
+
         if commits_prediction > int( currentConfig.num_commits ):
-            commits_prediction = ( commits_prediction - int( currentConfig.num_commits ) ) / int( currentConfig.num_days_to_fnum_commitsix ) * 10
-            return ( issues_prediction + commits_prediction ) / 2 
+            commits_prediction = ( commits_prediction - int( currentConfig.num_commits ) ) / int( currentConfig.num_commits ) * 10
+            return ( ( issues_prediction / int( currentConfig.num_days_to_fix ) * 10 ) + commits_prediction ) / 2 
+        elif commits_prediction == -1 or issues_prediction == -1:
+            if commits_prediction == -1 and issues_prediction == -1:
+                return -1
+            elif commits_prediction == -1:
+                return ( issues_prediction / int( currentConfig.num_days_to_fix ) * 10 ) / 2
+            elif issues_prediction == -1:
+                return commits_prediction / 2
         else:
             return issues_prediction / 2
     elif currentConfig.issues_or_commits == 'issues':
@@ -395,9 +402,7 @@ def projectPrediction ( df, repo, type ):
 
         d += 1
 
-    autoparameters = auto_arima( y = data, seasonal = False )
-
-    print( "hello", autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ), "goodbye" )
+    autoparameters = auto_arima( y = df[ 'Count' ], seasonal = False )
 
     order = autoparameters.get_params()[ 'order' ]
 
@@ -407,14 +412,14 @@ def projectPrediction ( df, repo, type ):
     print( "value of p parameter:", p )
     print( "value of d parameter:", d )
     print( "value of q parameter:", q )
-    
-    # finding p, d, q TODO
-    arima_model = ARIMA( data, order = ( p, d, q ), dates = df.Dates, freq ='MS' )
-    
-    # model = arima_model.fit()
+
+    df2 = pd.DataFrame({
+       "Dates": autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ),
+       "Count": autoparameters.fittedvalues()
+    })
 
     figline1 = px.line( data_frame= df, x = 'Dates', y = 'Count' )
-    figline2 = px.line( x = autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ), y = autoparameters.fittedvalues() )
+    figline2 = px.line( data_frame = df2, x = 'Dates', y = 'Count' ) 
 
     fig = go.Figure()
 
@@ -430,11 +435,12 @@ def projectPrediction ( df, repo, type ):
 
     fig.show()
 
-    # Evaluating Prediction TODO
+    # Evaluating Prediction
 
-    # print(model.summary())
+    print( autoparameters.summary() )
 
-    # print(model.get_prediction())
+    if len( set( autoparameters.fittedvalues().values ) ) == 1:
+        return -1  
 
     return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
 
@@ -505,7 +511,9 @@ def extractKeywords ( dependency ):
     return array
 
 # Predict Number of Vulnerabilities Per Month
-def vulPrediction ( keywords ):
+def vulPrediction ( dependency ):
+    
+    keywords = extractKeywords( dependency )
     
     vulnerabilities = []
 
@@ -520,7 +528,7 @@ def vulPrediction ( keywords ):
 
     popDates( vulnerabilities )
 
-    numVuls = vulnerabilityPrediction( vuls_over_time() )
+    numVuls = vulnerabilityPrediction( vuls_over_time(), dependency )
 
     if numVuls > int( currentConfig.num_vuls ):
         numVuls = ( numVuls - int( currentConfig.num_vuls ) ) / int( currentConfig.num_vuls ) * 10
@@ -529,46 +537,76 @@ def vulPrediction ( keywords ):
         return 0
  
 
-def vulnerabilityPrediction ( df ):
+def vulnerabilityPrediction ( df, dependency ):
     print( "Starting Prediction...")
 
-    df.index = pd.DatetimeIndex(df.Dates).to_period('M')
-
-    f = plt.figure()
-    ax1 = f.add_subplot(121)
-    ax1.set_title('Actual Values')
-    ax1.plot( df[ 'Dates' ], df[ 'Count' ] )
-
-    ax2 = f.add_subplot(122)
+    df.index = pd.DatetimeIndex( df.Dates ).to_period( 'M' )
 
     # ensure that the values are not constant
     if len( df[ 'Count' ].unique() ) == 1:
         return -1
-    
-    result = adfuller(df.Count.dropna())
-    print('p-value ', result[1])
 
-    result = adfuller(df.Count.diff().dropna())
-    print('p-value ', result[1])
+    p = 0
+    d = 0
+    q = 0
 
-    result = adfuller(df.Count.diff().diff().dropna())
-    print('p-value ', result[1] )
+    # Ensuring that the data is stationary
+    data = df[ 'Count' ]
 
-    print( df )
+    result = adfuller( data )
 
-    # p = 1
-    # d = 0
-    # q = 1
+    print( 'ADF Statistic: %f' % result[ 0 ] )
 
-    arima_model = ARIMA( df.Count, order=(1, 0, 1), dates= df.Dates, freq='MS' )
-    model = arima_model.fit()
-    print(model.summary())
-    plot_predict(model, ax = ax2)
-    plt.show()
+    print( 'p-value: %f' % result[ 1 ] )
 
-    print(model.get_prediction())
+    while result[ 1 ] > 0.05:
+        
+        data = data.diff().dropna()
+        result = adfuller( data )
 
-    return -1
+        print( 'ADF Statistic: %f' % result[ 0 ] )
+        print( 'p-value: %f' % result[ 1 ] )
+
+        d += 1
+
+    autoparameters = auto_arima( y = df[ 'Count' ], seasonal = False )
+
+    order = autoparameters.get_params()[ 'order' ]
+
+    p = order[ 0 ]
+    q = order[ 2 ]
+
+    print( "value of p parameter:", p )
+    print( "value of d parameter:", d )
+    print( "value of q parameter:", q )
+
+    df2 = pd.DataFrame({
+       "Dates": autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ),
+       "Count": autoparameters.fittedvalues()
+    })
+
+    figline1 = px.line( data_frame= df, x = 'Dates', y = 'Count' )
+    figline2 = px.line( data_frame = df2, x = 'Dates', y = 'Count' ) 
+
+    fig = go.Figure()
+
+    fig.add_trace( figline1.data[ 0 ] )
+    fig.add_trace( figline2.data[ 0 ] )
+
+    fig.update_layout(
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font_color='white',
+        title = f'Vulnerabilities Over Time for : {dependency}'
+    )
+
+    fig.show()
+
+    # Evaluating Prediction
+
+    print( autoparameters.summary() )
+
+    return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
 
 # Populate the Dates
 def popDates ( commits ) :
