@@ -344,7 +344,7 @@ def commits_over_time ( repo ) :
 
     df = pd.DataFrame({
         "Dates": commitCounts.keys(),
-        "Count": commitCounts.values()
+        "Actual": commitCounts.values()
     })
 
 
@@ -364,8 +364,6 @@ def commits_over_time ( repo ) :
 
     df.sort_values( by = 'Dates', ascending = True, inplace = True )
 
-    print( df )
-
     return df
 
 
@@ -376,7 +374,7 @@ def projectPrediction ( df, repo, type ):
     df.index = pd.DatetimeIndex( df.Dates ).to_period( 'M' )
 
     # ensure that the values are not constant
-    if len( df[ 'Count' ].unique() ) == 1:
+    if len( df[ 'Actual' ].unique() ) == 1:
         return -1
 
     p = 0
@@ -384,7 +382,7 @@ def projectPrediction ( df, repo, type ):
     q = 0
 
     # Ensuring that the data is stationary
-    data = df[ 'Count' ]
+    data = df[ 'Actual' ]
 
     result = adfuller( data )
 
@@ -402,7 +400,7 @@ def projectPrediction ( df, repo, type ):
 
         d += 1
 
-    autoparameters = auto_arima( y = df[ 'Count' ], seasonal = False )
+    autoparameters = auto_arima( y = df[ 'Actual' ], seasonal = False )
 
     order = autoparameters.get_params()[ 'order' ]
 
@@ -415,28 +413,28 @@ def projectPrediction ( df, repo, type ):
 
     df2 = pd.DataFrame({
        "Dates": autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ),
-       "Count": autoparameters.fittedvalues()
+       "Prediction": autoparameters.fittedvalues()
     })
 
-    figline1 = px.line( data_frame= df, x = 'Dates', y = 'Count' )
-    figline2 = px.line( data_frame = df2, x = 'Dates', y = 'Count' ) 
+    df = pd.concat( [ df, df2 ] )
 
-    fig = go.Figure()
-
-    fig.add_trace( figline1.data[ 0 ] )
-    fig.add_trace( figline2.data[ 0 ] )
-
+    fig = px.line( data_frame= df, x = 'Dates', y = [ 'Actual', 'Prediction' ],  color_discrete_map={
+                 "Actual": "#42DB04",
+                "Prediction": "#F66491"
+             } )
+    
+    fig.update_traces( line = dict( width = 3 ) )
+    
     fig.update_layout(
         plot_bgcolor='black',
         paper_bgcolor='black',
         font_color='white',
         title = f'{type} Over Time for : {repo}'
     )
-
+    
     fig.show()
 
     # Evaluating Prediction
-
     print( autoparameters.summary() )
 
     if len( set( autoparameters.fittedvalues().values ) ) == 1:
@@ -479,7 +477,7 @@ def issues_over_time ( repo ) :
 
     df = pd.DataFrame({
         "Dates": avg.keys(),
-        "Count": avg.values()
+        "Actual": avg.values()
     })
 
     df.sort_values( by = 'Dates', ascending = True, inplace = True )
