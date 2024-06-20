@@ -134,7 +134,7 @@ def findDependencies ():
                     G.add_edge( currentNodes.get( length - 3 ), lib, color ='black' )
             
 
-    net = Network( '1000px', '1000px' )
+    net = Network( '1000px', '2000px', heading = "Dependecy Tree of Risks" )
     net.from_nx( G )
     net.show( 'net.html', notebook = False )
 
@@ -437,9 +437,13 @@ def projectPrediction ( df, repo, type ):
     # Evaluating Prediction
     print( autoparameters.summary() )
 
+    # not enough data
     if len( set( autoparameters.fittedvalues().values ) ) == 1:
         return -1  
 
+    # if the prediction is below 0 then return 0
+    if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
+        return 0
     return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
 
 
