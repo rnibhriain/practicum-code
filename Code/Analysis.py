@@ -134,9 +134,21 @@ def findDependencies ():
                     G.add_edge( currentNodes.get( length - 3 ), lib, color ='black' )
             
 
-    net = Network( '1000px', '2000px', heading = "Dependecy Tree of Risks" )
+    net = Network( '1000px', '2000px', heading = 'Dependency Tree of Risks' )
     net.from_nx( G )
+
     net.show( 'net.html', notebook = False )
+
+    h = open( 'net.html', 'w' )
+
+    html_str = net.html.replace( '<center>\n<h1>Dependency Tree of Risks</h1>\n</center>', '' )
+    
+    html_str = html_str.replace( '<body>', '<body>\n<center>\n<label"><b>Key:</b></label>\n<div style="width: 150px; height: 320px; border: 0.5px solid black">\n<p style="display: inline-block;">Severe Risk<div style="width: 10px; height: 10px; background-color: red;"></div></p>\n<p>High Risk<div style="width: 10px; height: 10px; background-color: orange;"></div></p>\n<p>Medium Risk<div style="width: 10px; height: 10px; background-color: yellow;"></div></p>\n<p>Low Risk<div style="width: 10px; height: 10px; background-color: green;"></div></p>\n<p>Not Enough Data<div style="width: 10px; height: 10px; background-color: gray;"></div></p>\n</div>\n</center>\n' )
+
+    h.write( html_str )
+
+    h.close()
+
 
     f.close()
 
