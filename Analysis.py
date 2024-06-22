@@ -614,11 +614,11 @@ def vulPrediction ( dependency ):
 
     popDates( vulnerabilities )
 
-    # numVuls = vulnerabilityPrediction( vuls_over_time(), dependency )
+    numVuls = vulnerabilityPrediction( vuls_over_time(), dependency )
 
-    # numVuls = numVuls / int( currentConfig.num_vuls ) * 10
+    numVuls = numVuls / int( currentConfig.num_vuls ) * 10
 
-    return -1
+    return numVuls
  
 # Predict number of vulnerabilities per month
 def vulnerabilityPrediction ( df, dependency ):
