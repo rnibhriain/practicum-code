@@ -40,6 +40,7 @@ This part of the analysis aims to predict how many vulnerabilities will be repor
 - dependencies1-4.txt are the test dependency trees files
 - config.JSON is the configuration file
 - github_urls.txt contains the libraries in the dependency trees and their corresponding github urls
+- requirements.txt contains all the requirements to install to run this project
 
 ## Project Instructions
 
