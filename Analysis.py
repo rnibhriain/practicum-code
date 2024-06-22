@@ -184,9 +184,9 @@ def predictRisk ( lib, library ):
 
     if library not in links: return -1
 
-    #if links[ library ] not in gitURLScores:
-    #   gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
-    #gitScore = gitURLScores[ links[ library ] ]
+    if links[ library ] not in gitURLScores:
+        gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
+    gitScore = gitURLScores[ links[ library ] ]
 
     if lib not in vulScores:
         vulScores[ lib ] = vulPrediction( lib )
@@ -512,7 +512,6 @@ def issues_over_time () :
 
 ###############################################################################
 
-
 ###############################################################################
 # SECTION 3: Vulnerability Prediction by NVD Data                                        #
 ###############################################################################
@@ -549,9 +548,9 @@ def extractKeywords ( dependency ):
 
     return removeUnncessary( array )
 
+# removing any unncessary keywords
 def removeUnncessary ( array ):
     
-    # removing any unncessary keywords
     if "jar" in array: array.remove( "jar" )
     if "core" in array: array.remove( "core" )
     if "win" in array: array.remove( "win" )
@@ -578,7 +577,6 @@ def removeUnncessary ( array ):
     if "settings" in array: array.remove( "settings" )
 
     return array
-
 
 # Predict Number of Vulnerabilities Per Month
 def vulPrediction ( dependency ):
