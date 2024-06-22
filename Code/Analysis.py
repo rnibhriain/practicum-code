@@ -1,5 +1,4 @@
 import requests
-import requests
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
@@ -180,18 +179,16 @@ def predictRisk ( lib, library ):
     
     vulScore = 0
     gitScore = 0
-    
-    print( links[ library ] )
 
-    if links[ library ] not in gitURLScores:
-        gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
-    gitScore = gitURLScores[ links[ library ] ]
+    if library not in links: return -1
 
-    print( links[ library ] )
+    # if links[ library ] not in gitURLScores:
+    #    gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
+    # gitScore = gitURLScores[ links[ library ] ]
 
-    #if lib not in vulScores:
-    #    vulScores[ lib ] = vulPrediction( lib )
-    #vulScore = vulScores[ lib ]
+    if lib not in vulScores:
+        vulScores[ lib ] = vulPrediction( lib )
+    vulScore = vulScores[ lib ]
 
     return ( vulScore + gitScore ) / 2
 
@@ -344,11 +341,13 @@ def populateDates ( commits ) :
             commitDates.append( date[ 0 ].split( '-' )[ 0 ] + '-' + date[ 0 ].split( '-' )[ 1 ] )
 
 
-def commits_over_time ( repo ) :
+def commits_over_time () :
+    
     print( len( commitDates ), commitDates[ len( commitDates ) - 1 ] )
-    i = -1
+    i = 0
+
     for x in commitDates: 
-        if ( x in commitCounts ):
+        if x in commitCounts :
             commitCounts[ x ] += 1
         else:
             commitCounts[ x ] = 1
@@ -476,7 +475,7 @@ def closedIssuesResolving ( issues ):
             numDays.append( time.days )
 
 # Display the length of time to close issues/how long they are open
-def issues_over_time ( repo ) :
+def issues_over_time () :
 
     # average length of time per month
     for i in range( len( dates ) ):
@@ -520,7 +519,24 @@ def issues_over_time ( repo ) :
 ###############################################################################
 def extractKeywords ( dependency ):
     
-    array = []
+    print( dependency )
+    
+    array = dependency.split( "-" )
+
+    for i in array:
+        if "." in i:
+            array.remove( i )
+            newSection = i.split( "." )
+            if "org" == newSection[ 0 ]: 
+                newSection.remove( "org" )
+                array = newSection + array
+            elif newSection[ 0 ].isdigit():
+                array.append( newSection[ 0 ] ) 
+            else:
+                array = newSection + array 
+                
+    
+    print( array )
 
     return array
 
@@ -531,6 +547,7 @@ def vulPrediction ( dependency ):
     
     vulnerabilities = []
 
+    
     for x in keywords:
         # Search NVD API using the keywords from the dependencies
         url = "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=" + x
@@ -540,15 +557,17 @@ def vulPrediction ( dependency ):
             if i['cve'] not in vulnerabilities:
                 vulnerabilities.append( i['cve'] )
 
+    """
+
     popDates( vulnerabilities )
 
     numVuls = vulnerabilityPrediction( vuls_over_time(), dependency )
 
-    if numVuls > int( currentConfig.num_vuls ):
-        numVuls = ( numVuls - int( currentConfig.num_vuls ) ) / int( currentConfig.num_vuls ) * 10
-        return numVuls 
-    else:
-        return 0
+    numVuls = ( numVuls - int( currentConfig.num_vuls ) ) / int( currentConfig.num_vuls ) * 10
+
+    """
+
+    return -1
  
 
 def vulnerabilityPrediction ( df, dependency ):
@@ -662,7 +681,7 @@ def vuls_over_time ():
     ax1.set_title('Actual Values')
     ax1.plot( df[ 'Dates' ], df[ 'Count' ] )
 
-    idx = pd.date_range( df.Dates.min(), df.Dates.max(), freq = 'M' )
+    idx = pd.date_range( df.Dates.min(), df.Dates.max(), freq = 'MS' )
 
     df.set_index( df.Dates )
 

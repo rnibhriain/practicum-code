@@ -44,3 +44,9 @@ This part of the analysis aims to predict how many vulnerabilities will be repor
 ## Project Instructions
 
 The idea is that this project and its corresponding data - config.JSON, github_urls.txt and the Analysis.py files can be placed in a folder with a maven project. The user can enable the configuration options as they see fit - to analyse issues/commits, number of days/commits they see as appropriate and number of vulnerabilities before it is too many. Then the user can run the program which will gather the dependencies and analyse their GitHub projects and NVD vulnerabilities to see which of their dependencies are risky (in their decided levels). 
+
+- Install python and pip
+- Clone this repository
+- Edit the configurations to your liking (including adding a github token)
+- Place in a maven project
+- Install the requirements using command: pip install -r requirements.txt in the Data folder
