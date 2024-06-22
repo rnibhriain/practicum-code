@@ -70,7 +70,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "Data/dependencies1.txt", "r" )
+    f = open( "Data/dependencies4.txt", "r" )
 
     global currentNode
     global length
@@ -184,9 +184,9 @@ def predictRisk ( lib, library ):
 
     if library not in links: return -1
 
-    if links[ library ] not in gitURLScores:
-       gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
-    gitScore = gitURLScores[ links[ library ] ]
+    #if links[ library ] not in gitURLScores:
+    #   gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
+    #gitScore = gitURLScores[ links[ library ] ]
 
     if lib not in vulScores:
         vulScores[ lib ] = vulPrediction( lib )
@@ -547,13 +547,38 @@ def extractKeywords ( dependency ):
 
     array.append( current )
 
+    return removeUnncessary( array )
 
+def removeUnncessary ( array ):
+    
+    # removing any unncessary keywords
     if "jar" in array: array.remove( "jar" )
     if "core" in array: array.remove( "core" )
     if "win" in array: array.remove( "win" )
     if "base" in array: array.remove( "base" )
+    if "plugins" in array: array.remove( "plugins" )
+    if "web" in array: array.remove( "web" )
+    if "api" in array: array.remove( "api" )
+    if "classic" in array: array.remove( "classic" )
+    if "module" in array: array.remove( "module" )
+    if "parameter" in array: array.remove( "parameter" )
+    if "embed" in array: array.remove( "embed" )
+    if "expression" in array: array.remove( "expression" )
+    if "byte" in array: array.remove( "byte" )
+    if "runtime" in array: array.remove( "runtime" )
+    if "java" in array: array.remove( "java" )
+    if "test" in array: array.remove( "test" )
+    if "smart" in array: array.remove( "smart" )
+    if "platform" in array: array.remove( "platform" )
+    if "engine" in array: array.remove( "engine" )
+    if "agent" in array: array.remove( "agent" )
+    if "SNAPSHOT" in array: array.remove( "SNAPSHOT" )
+    if "xml" in array: array.remove( "xml" )
+    if "legacy" in array: array.remove( "legacy" )
+    if "settings" in array: array.remove( "settings" )
 
     return array
+
 
 # Predict Number of Vulnerabilities Per Month
 def vulPrediction ( dependency ):
@@ -577,12 +602,11 @@ def vulPrediction ( dependency ):
 
         if response != None:
             
-            print( x )
-            
             if response.status_code == 200:
+                
+                print( x )
 
                 print( len( response.json()[ 'vulnerabilities' ] ) )
-
 
                 for i in response.json()[ 'vulnerabilities' ]:
                     if i[ 'cve' ] not in vulnerabilities:
@@ -592,11 +616,11 @@ def vulPrediction ( dependency ):
 
     popDates( vulnerabilities )
 
-    numVuls = vulnerabilityPrediction( vuls_over_time(), dependency )
+    # numVuls = vulnerabilityPrediction( vuls_over_time(), dependency )
 
-    numVuls = numVuls / int( currentConfig.num_vuls ) * 10
+    # numVuls = numVuls / int( currentConfig.num_vuls ) * 10
 
-    return numVuls
+    return -1
  
 # Predict number of vulnerabilities per month
 def vulnerabilityPrediction ( df, dependency ):
