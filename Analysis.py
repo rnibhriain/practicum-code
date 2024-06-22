@@ -184,9 +184,9 @@ def predictRisk ( lib, library ):
 
     if library not in links: return -1
 
-    # if links[ library ] not in gitURLScores:
-    #    gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
-    # gitScore = gitURLScores[ links[ library ] ]
+    if links[ library ] not in gitURLScores:
+       gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
+    gitScore = gitURLScores[ links[ library ] ]
 
     if lib not in vulScores:
         vulScores[ lib ] = vulPrediction( lib )
