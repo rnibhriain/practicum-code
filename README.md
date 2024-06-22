@@ -50,3 +50,4 @@ The idea is that this project and its corresponding data - config.JSON, github_u
 - Edit the configurations to your liking (including adding a github token)
 - Place in a maven project
 - Install the requirements using command: pip install -r requirements.txt in the Data folder
+- Run the analysis file and explore the resulting graphs!
