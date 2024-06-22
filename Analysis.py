@@ -24,12 +24,14 @@ class config:
                  num_days_to_fix, 
                  num_commits, 
                   issues_or_commits,
-                   token ):
+                   token,
+                    nvd_key ):
         self.num_vuls = num_vuls
         self.num_days_to_fix = num_days_to_fix
         self.num_commits = num_commits
         self.issues_or_commits = issues_or_commits
         self.token = token
+        self.nvd_key = nvd_key
 
 def configuration ():
     
@@ -42,10 +44,10 @@ def configuration ():
                            data[ 'num_days_to_fix' ], 
                             data[ 'num_commits' ], 
                             data[ 'issues_or_commits' ],
-                            data[ 'token' ] )
+                            data[ 'token' ],
+                             data[ 'nvd_key' ] )
 
     f.close()
-
 
 ###############################################################################
 
@@ -68,13 +70,13 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "Data/dependencies4.txt", "r" )
+    f = open( "Data/dependencies1.txt", "r" )
 
     global currentNode
     global length
 
     # add central node for the project
-    G.add_node( "PROJECT", color="black",  shape='square' )
+    G.add_node( "PROJECT", color = "black",  shape = 'square' )
 
     for i in f: 
         if "\\-" in i or "+-" in i: 
@@ -203,7 +205,7 @@ def populateDependencyLinks ():
 
     for i in f:
         data = i.split( "," )
-        data[ 1 ] = data[ 1 ].replace("\n", "")
+        data[ 1 ] = data[ 1 ].replace( "\n", "" )
         links[ data[ 0 ] ] = data[ 1 ]
 
     f.close()
@@ -213,7 +215,7 @@ nums = dict()
 avg = dict()
 dates = []
 
-
+# Gather Data for Both Time to Close Issues and Commits Per Month
 def gatherData ( repoUrl ):
     issues = []
     commits = []
@@ -300,8 +302,8 @@ def gatherData ( repoUrl ):
 
     if currentConfig.issues_or_commits == 'both':
         
-        issues_prediction = projectPrediction( issues_over_time( repoUrl ), repoUrl, 'Issues' )
-        commits_prediction = projectPrediction( commits_over_time( repoUrl ), repoUrl, 'Commits' ) 
+        issues_prediction = projectPrediction( issues_over_time(), repoUrl, 'Issues' )
+        commits_prediction = projectPrediction( commits_over_time(), repoUrl, 'Commits' ) 
 
         if commits_prediction > int( currentConfig.num_commits ):
             commits_prediction = ( commits_prediction - int( currentConfig.num_commits ) ) / int( currentConfig.num_commits ) * 10
@@ -316,9 +318,9 @@ def gatherData ( repoUrl ):
         else:
             return issues_prediction / 2
     elif currentConfig.issues_or_commits == 'issues':
-        return projectPrediction( issues_over_time( repoUrl ), repoUrl, 'Issues' ) / int( currentConfig.num_days_to_fix ) * 10
+        return projectPrediction( issues_over_time(), repoUrl, 'Issues' ) / int( currentConfig.num_days_to_fix ) * 10
     elif currentConfig.issues_or_commits == 'commits':
-        commits_prediction = projectPrediction( commits_over_time( repoUrl ), repoUrl, 'Commits' ) 
+        commits_prediction = projectPrediction( commits_over_time(), repoUrl, 'Commits' ) 
         if commits_prediction > int( currentConfig.num_commits ):
             commits_prediction = ( commits_prediction - int( currentConfig.num_commits ) ) / int( currentConfig.num_commits ) * 10
             return commits_prediction
@@ -327,23 +329,21 @@ def gatherData ( repoUrl ):
 
     return -1
 
-
 commitDates = []
 commitCounts = dict()
 
+# Populate dates for commit data gathered
 def populateDates ( commits ) :
     for x in commits:
         for i in x.json(): 
-            date = i['commit']['author']['date'].replace("T", " ")
+            date = i[ 'commit' ][ 'author' ][ 'date' ].replace( "T", " " )
                 
-            date = date.split(" ") 
+            date = date.split( " " ) 
 
             commitDates.append( date[ 0 ].split( '-' )[ 0 ] + '-' + date[ 0 ].split( '-' )[ 1 ] )
 
-
+# Place commit data over time in a DataFrame
 def commits_over_time () :
-    
-    print( len( commitDates ), commitDates[ len( commitDates ) - 1 ] )
     i = 0
 
     for x in commitDates: 
@@ -377,7 +377,7 @@ def commits_over_time () :
 
     return df
 
-
+# Use ARIMA to predict gathered data - either issues or commits
 def projectPrediction ( df, repo, type ):
     
     print( "Starting Prediction...")
@@ -457,7 +457,6 @@ def projectPrediction ( df, repo, type ):
         return 0
     return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
 
-
 # Find the Time It Took to Close an Issue
 def closedIssuesResolving ( issues ):
     for x in issues:
@@ -517,6 +516,8 @@ def issues_over_time () :
 ###############################################################################
 # SECTION 3: Vulnerability Prediction by NVD Data                                        #
 ###############################################################################
+
+# extract keywords for each dependency
 def extractKeywords ( dependency ):
     
     print( dependency )
@@ -534,49 +535,77 @@ def extractKeywords ( dependency ):
                 array.append( newSection[ 0 ] ) 
             else:
                 array = newSection + array 
-                
-    
-    print( array )
+
+    current = ""
+
+    for i in array:
+        if i.isdigit():
+            array.append( array[ 0 ] + i )
+            array.remove( i )
+        else: 
+            current += i + " "
+
+    array.append( current )
+
+
+    if "jar" in array: array.remove( "jar" )
+    if "core" in array: array.remove( "core" )
+    if "win" in array: array.remove( "win" )
+    if "base" in array: array.remove( "base" )
 
     return array
 
 # Predict Number of Vulnerabilities Per Month
 def vulPrediction ( dependency ):
     
+    vulnerabilityDates.clear()
+
     keywords = extractKeywords( dependency )
     
     vulnerabilities = []
 
-    
     for x in keywords:
+        
         # Search NVD API using the keywords from the dependencies
-        url = "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=" + x
-        response = requests.get( url )
+        url = f"https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch={x}&resultsPerPage=2000"
 
-        for i in response.json()['vulnerabilities']:
-            if i['cve'] not in vulnerabilities:
-                vulnerabilities.append( i['cve'] )
+        token = currentConfig.nvd_key
+        headers = { 'User-Agent': 'request'
+               , 'apiKey': token }
+        
+        response = requests.get( url, headers = headers )
 
-    """
+        if response != None:
+            
+            print( x )
+            
+            if response.status_code == 200:
+
+                print( len( response.json()[ 'vulnerabilities' ] ) )
+
+
+                for i in response.json()[ 'vulnerabilities' ]:
+                    if i[ 'cve' ] not in vulnerabilities:
+                        vulnerabilities.append( i[ 'cve' ] )
+            else:
+                print( response.status_code )
 
     popDates( vulnerabilities )
 
     numVuls = vulnerabilityPrediction( vuls_over_time(), dependency )
 
-    numVuls = ( numVuls - int( currentConfig.num_vuls ) ) / int( currentConfig.num_vuls ) * 10
+    numVuls = numVuls / int( currentConfig.num_vuls ) * 10
 
-    """
-
-    return -1
+    return numVuls
  
-
+# Predict number of vulnerabilities per month
 def vulnerabilityPrediction ( df, dependency ):
     print( "Starting Prediction...")
 
     df.index = pd.DatetimeIndex( df.Dates ).to_period( 'M' )
 
     # ensure that the values are not constant
-    if len( df[ 'Count' ].unique() ) == 1:
+    if len( df[ 'Actual' ].unique() ) == 1 or len( df ) == 0:
         return -1
 
     p = 0
@@ -584,7 +613,7 @@ def vulnerabilityPrediction ( df, dependency ):
     q = 0
 
     # Ensuring that the data is stationary
-    data = df[ 'Count' ]
+    data = df[ 'Actual' ]
 
     result = adfuller( data )
 
@@ -602,7 +631,7 @@ def vulnerabilityPrediction ( df, dependency ):
 
         d += 1
 
-    autoparameters = auto_arima( y = df[ 'Count' ], seasonal = False )
+    autoparameters = auto_arima( y = df[ 'Actual' ], seasonal = False )
 
     order = autoparameters.get_params()[ 'order' ]
 
@@ -615,73 +644,81 @@ def vulnerabilityPrediction ( df, dependency ):
 
     df2 = pd.DataFrame({
        "Dates": autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ),
-       "Count": autoparameters.fittedvalues()
+       "Prediction": autoparameters.fittedvalues()
     })
 
-    figline1 = px.line( data_frame= df, x = 'Dates', y = 'Count' )
-    figline2 = px.line( data_frame = df2, x = 'Dates', y = 'Count' ) 
+    df = pd.concat( [ df, df2 ] )
 
-    fig = go.Figure()
-
-    fig.add_trace( figline1.data[ 0 ] )
-    fig.add_trace( figline2.data[ 0 ] )
-
+    fig = px.line( data_frame= df, x = 'Dates', y = [ 'Actual', 'Prediction' ],  color_discrete_map={
+                 "Actual": "#0AFBFF",
+                "Prediction": "#FBFF00"
+             } )
+    
+    fig.update_traces( line = dict( width = 3 ) )
+    
     fig.update_layout(
         plot_bgcolor='black',
         paper_bgcolor='black',
         font_color='white',
         title = f'Vulnerabilities Over Time for : {dependency}'
     )
-
+    
     fig.show()
 
     # Evaluating Prediction
-
     print( autoparameters.summary() )
 
+    # not enough data
+    if len( set( autoparameters.fittedvalues().values ) ) == 1:
+        return -1  
+
+    # if the prediction is below 0 then return 0
+    if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
+        return 0
     return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
 
-# Populate the Dates
-def popDates ( commits ) :
-    print( len(commits))
-    for x in commits:
-        date = x[ 'published' ]           
-        date = date.split("T")
-        date = date[0].split("-")
-        date = date[0] + '-' + date[1]
-        dates.append(date)
+# Populate the Dates for gathered vulnerabilities per month
+def popDates ( vuls ) :
+    
+    print( len( vuls ) )
 
-counts = []
+    for x in vuls:
+        date = x[ 'published' ]           
+        date = date.split( "T") 
+        date = date[ 0 ].split( "-" )
+        date = date[ 0 ] + '-' + date[ 1 ]
+
+        vulnerabilityDates.append( date )
+
+vulnerabilityDates = []
 
 # Display Vulnerabilities Over Time
 def vuls_over_time ():
-    finalDates = []
-    currentDate = ''
-    i = -1
-    for x in dates: 
-        if (currentDate == x ):
-            
-            counts[ i ] += 1
+    
+    i = 0
+
+    vulCounts = dict()
+
+    for x in vulnerabilityDates: 
+        if x in vulCounts :
+            vulCounts[ x ] += 1
         else:
-            finalDates.append(x)
-            counts.append( 1 )
-            currentDate = x
+            vulCounts[ x ] = 1
             i += 1
 
     df = pd.DataFrame({
-        "Dates": finalDates,
-        "Count": counts
+        "Dates": vulCounts.keys(),
+        "Actual": vulCounts.values()
     })
 
-    print(df)
-    df = df.drop_duplicates()
+    if len( df ) == 0:
+        return df
 
-    f = plt.figure()
-    ax1 = f.add_subplot(121)
-    ax1.set_title('Actual Values')
-    ax1.plot( df[ 'Dates' ], df[ 'Count' ] )
+    df = df.drop_duplicates() 
 
-    idx = pd.date_range( df.Dates.min(), df.Dates.max(), freq = 'MS' )
+    df.sort_values( by = 'Dates', ascending = True, inplace = True )
+
+    idx = pd.date_range( df.Dates.min(), datetime.today(), freq = 'MS' )
 
     df.set_index( df.Dates )
 
@@ -691,31 +728,14 @@ def vuls_over_time ():
         if current not in df[ 'Dates' ].unique():
             df = pd.concat( [ pd.DataFrame( [ [ current, 0 ] ], columns = df.columns ), df ], ignore_index = True )
 
-    df = df[~df.index.duplicated(keep='first')]
-
     df.sort_values( by = 'Dates', ascending = True, inplace = True )
-
-    figline = px.line( x = df.index, y=df.Count)
-
-    fig = go.Figure(data=figline.data)
-
-    fig.update_layout(
-        plot_bgcolor='black',
-        paper_bgcolor='black',
-        font_color='white',
-        title = f'Commits Over Time'
-    )
-
-    fig = go.Figure( data = figline.data )
-
-    fig.show()
 
     return df
 
 ###############################################################################
 
 
- 
+# Starting the Program
 def main():
     
     # SETUP
