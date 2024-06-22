@@ -33,7 +33,7 @@ class config:
 
 def configuration ():
     
-    f = open( "../Data/config.JSON" )
+    f = open( "Data/config.JSON" )
     data = json.load( f )
 
     global currentConfig
@@ -68,7 +68,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "../Data/dependencies4.txt", "r" )
+    f = open( "Data/dependencies4.txt", "r" )
 
     global currentNode
     global length
@@ -199,7 +199,7 @@ links = dict()
 
 # This function takes a text file of maven dependencies to their user/repo github links
 def populateDependencyLinks ():
-    f = open( "../Data/github_urls.txt", "r" )
+    f = open( "Data/github_urls.txt", "r" )
 
     for i in f:
         data = i.split( "," )
