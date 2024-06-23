@@ -379,8 +379,6 @@ def commits_over_time () :
 
 # Use ARIMA to predict gathered data - either issues or commits
 def projectPrediction ( df, repo, type ):
-    
-    print( "Starting Prediction...")
 
     df.index = pd.DatetimeIndex( df.Dates ).to_period( 'M' )
 
@@ -388,39 +386,7 @@ def projectPrediction ( df, repo, type ):
     if len( df[ 'Actual' ].unique() ) == 1:
         return -1
 
-    p = 0
-    d = 0
-    q = 0
-
-    # Ensuring that the data is stationary
-    data = df[ 'Actual' ]
-
-    result = adfuller( data )
-
-    print( 'ADF Statistic: %f' % result[ 0 ] )
-
-    print( 'p-value: %f' % result[ 1 ] )
-
-    while result[ 1 ] > 0.05:
-        
-        data = data.diff().dropna()
-        result = adfuller( data )
-
-        print( 'ADF Statistic: %f' % result[ 0 ] )
-        print( 'p-value: %f' % result[ 1 ] )
-
-        d += 1
-
     autoparameters = auto_arima( y = df[ 'Actual' ], seasonal = False )
-
-    order = autoparameters.get_params()[ 'order' ]
-
-    p = order[ 0 ]
-    q = order[ 2 ]
-
-    print( "value of p parameter:", p )
-    print( "value of d parameter:", d )
-    print( "value of q parameter:", q )
 
     df2 = pd.DataFrame({
        "Dates": autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ),
@@ -444,9 +410,6 @@ def projectPrediction ( df, repo, type ):
     )
     
     fig.show()
-
-    # Evaluating Prediction
-    print( autoparameters.summary() )
 
     # not enough data
     if len( set( autoparameters.fittedvalues().values ) ) == 1:
@@ -622,7 +585,6 @@ def vulPrediction ( dependency ):
  
 # Predict number of vulnerabilities per month
 def vulnerabilityPrediction ( df, dependency ):
-    print( "Starting Prediction...")
 
     df.index = pd.DatetimeIndex( df.Dates ).to_period( 'M' )
 
@@ -630,39 +592,7 @@ def vulnerabilityPrediction ( df, dependency ):
     if len( df[ 'Actual' ].unique() ) == 1 or len( df ) == 0:
         return -1
 
-    p = 0
-    d = 0
-    q = 0
-
-    # Ensuring that the data is stationary
-    data = df[ 'Actual' ]
-
-    result = adfuller( data )
-
-    print( 'ADF Statistic: %f' % result[ 0 ] )
-
-    print( 'p-value: %f' % result[ 1 ] )
-
-    while result[ 1 ] > 0.05:
-        
-        data = data.diff().dropna()
-        result = adfuller( data )
-
-        print( 'ADF Statistic: %f' % result[ 0 ] )
-        print( 'p-value: %f' % result[ 1 ] )
-
-        d += 1
-
     autoparameters = auto_arima( y = df[ 'Actual' ], seasonal = False )
-
-    order = autoparameters.get_params()[ 'order' ]
-
-    p = order[ 0 ]
-    q = order[ 2 ]
-
-    print( "value of p parameter:", p )
-    print( "value of d parameter:", d )
-    print( "value of q parameter:", q )
 
     df2 = pd.DataFrame({
        "Dates": autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ),
@@ -686,9 +616,6 @@ def vulnerabilityPrediction ( df, dependency ):
     )
     
     fig.show()
-
-    # Evaluating Prediction
-    print( autoparameters.summary() )
 
     # not enough data
     if len( set( autoparameters.fittedvalues().values ) ) == 1:
