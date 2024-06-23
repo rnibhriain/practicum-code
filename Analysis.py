@@ -14,6 +14,8 @@ import networkx as nx
 import subprocess
 from pyvis.network import Network
 import json
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
 
 ##############################################################################
 # CONFIG OBJECT And SetUp                                                    #
@@ -414,6 +416,26 @@ def projectPrediction ( df, repo, type ):
     # not enough data
     if len( set( autoparameters.fittedvalues().values ) ) == 1:
         return -1  
+    
+    df = df.replace( np.nan, 0 )
+    
+    df[ 'forecast_error' ] = df[ 'Actual' ] - df[ 'Prediction' ]
+
+    # Calculate the absolute percentage errors
+    df[ 'absolute_percentage_error' ] = ( df[ 'forecast_error' ].abs() / df[ 'Actual' ] ) * 100
+
+    # Calculate the MAPE
+    mape = df[ 'absolute_percentage_error' ].mean()
+
+    print( "MAPE:1", mape )
+
+    mae = mean_absolute_error( df[ 'Actual' ], df[ 'Prediction' ] )
+
+    print( "MAE:", mae )
+
+    rmse = mean_squared_error( df[ 'Actual' ], df[ 'Prediction' ], squared = False )
+
+    print( "RMSE:", rmse )
 
     # if the prediction is below 0 then return 0
     if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
@@ -616,6 +638,26 @@ def vulnerabilityPrediction ( df, dependency ):
     )
     
     fig.show()
+
+    df = df.replace( np.nan, 0 )
+    
+    df[ 'forecast_error' ] = df[ 'Actual' ] - df[ 'Prediction' ]
+
+    # Calculate the absolute percentage errors
+    df[ 'absolute_percentage_error' ] = ( df[ 'forecast_error' ].abs() / df[ 'Actual' ] ) * 100
+
+    # Calculate the MAPE
+    mape = df[ 'absolute_percentage_error' ].mean()
+
+    print( "MAPE:1", mape )
+
+    mae = mean_absolute_error( df[ 'Actual' ], df[ 'Prediction' ] )
+
+    print( "MAE:", mae )
+
+    rmse = mean_squared_error( df[ 'Actual' ], df[ 'Prediction' ], squared = False )
+
+    print( "RMSE:", rmse )
 
     # not enough data
     if len( set( autoparameters.fittedvalues().values ) ) == 1:
