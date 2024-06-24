@@ -71,7 +71,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "Data/dependencies1.txt", "r" )
+    f = open( "Data/dependencies4.txt", "r" )
 
     # add central node for the project
     G.add_node( "PROJECT", color = "black",  shape = 'square' )
@@ -331,8 +331,8 @@ def gatherData ( repoUrl ):
     # Return scores according to configuration options (accounts for if there is not enough data for either issues or commits)
     if currentConfig.issues_or_commits == 'both':
         
-        issues_prediction = ( projectPrediction( issues_over_time(), repoUrl, 'Issues' )  / int( currentConfig.num_days_to_fix ) ) * 10
-        commits_prediction = ( int( currentConfig.num_days_to_fix ) / projectPrediction( commits_over_time(), repoUrl, 'Commits' ) ) * 10 
+        issues_prediction = float( projectPrediction( issues_over_time(), repoUrl, 'Issues' )  / int( currentConfig.num_days_to_fix ) ) * 10
+        commits_prediction = float( int( currentConfig.num_days_to_fix ) / projectPrediction( commits_over_time(), repoUrl, 'Commits' ) ) * 10 
 
         if commits_prediction == -1 and issues_prediction == -1:
             return -1
@@ -344,11 +344,20 @@ def gatherData ( repoUrl ):
             return commits_prediction / 2
         
     elif currentConfig.issues_or_commits == 'issues':
-        return ( projectPrediction( issues_over_time(), repoUrl, 'Issues' ) / int( currentConfig.num_days_to_fix ) ) * 10
+        issues_prediction = projectPrediction( issues_over_time(), repoUrl, 'Issues' )
+
+        if issues_prediction != -1:
+            return float( issues_prediction / int( currentConfig.num_days_to_fix ) ) * 10
+        
+        return issues_prediction
     
     elif currentConfig.issues_or_commits == 'commits':
-        return ( int( currentConfig.num_days_to_fix ) / projectPrediction( commits_over_time(), repoUrl, 'Commits' ) ) * 10
+        commits_prediction = projectPrediction( commits_over_time(), repoUrl, 'Commits' )
 
+        if commits_prediction != -1:
+            return float( int( currentConfig.num_days_to_fix ) / commits_prediction ) * 10
+        
+        return commits_prediction
 
     # Error with configuration
     print( "Configuration for project analysis can be: 'both', 'issues' or 'commits'")
@@ -469,7 +478,7 @@ def projectPrediction ( df, repo, type ):
     # if the prediction is below 0 then return 0
     if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
         return 0
-    
+
     return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
 
 # Find the Time It Took to Close an Issue 
@@ -629,7 +638,8 @@ def vulPrediction ( dependency ):
 
     numVuls = vulnerabilityPrediction( vuls_over_time(), dependency )
 
-    numVuls = numVuls / int( currentConfig.num_vuls ) * 10
+    if numVuls != -1:
+        return float( numVuls / int( currentConfig.num_vuls ) ) * 10
 
     return numVuls
  
@@ -671,9 +681,9 @@ def vulnerabilityPrediction ( df, dependency ):
     
     fig.show()
 
-    # not enough data
+    # not enough data for a prediction
     if len( set( autoparameters.fittedvalues().values ) ) == 1:
-        return -1 
+        return -1
 
     df = df.replace( np.nan, 0 )
     
@@ -703,6 +713,7 @@ def vulnerabilityPrediction ( df, dependency ):
     # if the prediction is below 0 then return 0
     if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
         return 0
+
     return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
 
 # Populate the Dates for gathered vulnerabilities per month
