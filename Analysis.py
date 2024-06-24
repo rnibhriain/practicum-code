@@ -422,7 +422,7 @@ def projectPrediction ( df, repo, type ):
     df[ 'forecast_error' ] = df[ 'Actual' ] - df[ 'Prediction' ]
 
     # Calculate the absolute percentage errors
-    df[ 'absolute_percentage_error' ] = ( df[ 'forecast_error' ].abs() / df[ 'Actual' ] ) * 100
+    df[ 'absolute_percentage_error' ] = ( df[ 'forecast_error' ].abs() / df[ 'Actual' ].replace( 0, 1 ) ) * 100
 
     # Calculate the MAPE
     mape = df[ 'absolute_percentage_error' ].mean()
@@ -644,7 +644,7 @@ def vulnerabilityPrediction ( df, dependency ):
     df[ 'forecast_error' ] = df[ 'Actual' ] - df[ 'Prediction' ]
 
     # Calculate the absolute percentage errors
-    df[ 'absolute_percentage_error' ] = ( df[ 'forecast_error' ].abs() / df[ 'Actual' ] ) * 100
+    df[ 'absolute_percentage_error' ] = ( df[ 'forecast_error' ].abs() / df[ 'Actual' ].replace( 0, 1 ) ) * 100
 
     # Calculate the MAPE
     mape = df[ 'absolute_percentage_error' ].mean()
