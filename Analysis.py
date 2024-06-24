@@ -20,6 +20,8 @@ from sklearn.metrics import mean_squared_error
 ##############################################################################
 # CONFIG OBJECT And SetUp                                                    #
 ##############################################################################
+
+# Object to store current configuration jobs
 class config:
 
     def __init__( self, num_vuls, 
@@ -35,6 +37,7 @@ class config:
         self.token = token
         self.nvd_key = nvd_key
 
+# Setup the configuration object using configuration JSON
 def configuration ():
     
     f = open( "Data/config.JSON" )
@@ -56,26 +59,19 @@ def configuration ():
 ###############################################################################
 # SECTION 1: Algorithm to Find Dependencies                                   #
 ###############################################################################
-dependencies = []
 G = nx.Graph()
-currentNode = str()
 length = int()
 currentNodes = dict()
 currentConfig = None
 riskScores = dict()
 
-# using Maven dependency tree data (for now) extract and create a dependency graph
+# using Maven dependency tree data extract and create a dependency graph
 def findDependencies ():
-    # plan for this is to use maven dependency trees
-    # - so create a new maven project with some dependencies
 
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
 
-    f = open( "Data/dependencies4.txt", "r" )
-
-    global currentNode
-    global length
+    f = open( "Data/dependencies1.txt", "r" )
 
     # add central node for the project
     G.add_node( "PROJECT", color = "black",  shape = 'square' )
@@ -85,8 +81,7 @@ def findDependencies ():
             
             library = extractLibrary( i )
 
-            dependencies.append( library )
-
+            # remove any unnecessary characters before analysis
             lib = i.strip( "[INFO] /")
             lib = lib.strip( "| ")
             lib = lib.strip( "\\- ")
@@ -104,13 +99,14 @@ def findDependencies ():
                 
             score = 0
 
+            # If the dependency has already been analysed then use that score
             if lib in riskScores:
                 score = riskScores[ lib ]
             else:
                 score = predictRisk( lib, library )
                 riskScores[ lib ] = score
 
-            # picking colour for the current nodes
+            # picking colour for the current nodes - based on the risk
             if score < 0:
                 G.add_node( lib, color ='grey' )
             elif score >= 0 and score < 2.5:
@@ -129,6 +125,8 @@ def findDependencies ():
                 currentNodes.clear()
                 G.add_edge( "PROJECT", lib )
                 currentNodes[ length ] = lib
+
+            # else find the distance from the project
             else:
                 if currentNodes.get( length ) == None:
                     currentNodes[ length ] = lib
@@ -137,6 +135,7 @@ def findDependencies ():
                     G.add_edge( currentNodes.get( length - 3 ), lib, color ='black' )
             
 
+    # Set up the dependency tree diagram
     net = Network( '1000px', '2000px', heading = 'Dependency Tree of Risks' )
     net.from_nx( G )
 
@@ -144,20 +143,21 @@ def findDependencies ():
 
     h = open( 'net.html', 'w' )
 
+    # Fix double heading issue
     html_str = net.html.replace( '<center>\n<h1>Dependency Tree of Risks</h1>\n</center>', '' )
     
+    # Add a key in for risk score diagram
     html_str = html_str.replace( '<body>', '<body>\n<center>\n<label"><b>Key:</b></label>\n<div style="width: 150px; height: 320px; border: 0.5px solid black">\n<p style="display: inline-block;">Severe Risk<div style="width: 10px; height: 10px; background-color: red;"></div></p>\n<p>High Risk<div style="width: 10px; height: 10px; background-color: orange;"></div></p>\n<p>Medium Risk<div style="width: 10px; height: 10px; background-color: yellow;"></div></p>\n<p>Low Risk<div style="width: 10px; height: 10px; background-color: green;"></div></p>\n<p>Not Enough Data<div style="width: 10px; height: 10px; background-color: gray;"></div></p>\n</div>\n</center>\n' )
 
     h.write( html_str )
 
     h.close()
 
-
     f.close()
 
     return 0
 
-# extracts library for Github Issues prediction
+# extracts library for GitHub project activity prediction
 def extractLibrary ( dependency ):
     
     global length
@@ -175,30 +175,48 @@ def extractLibrary ( dependency ):
     return current
 ###############################################################################
 
+# project activity scores
 gitURLScores = dict()
+
+# vulnerability data scores
 vulScores = dict()
 
-# leave this customisable
+# this function returns the combined score of the project activity and vulnerabilities
 def predictRisk ( lib, library ):
     
     vulScore = 0
     gitScore = 0
 
-    if library not in links: return -1
+    # if the dependency does not have a corresponding link
+    if library not in links: 
+        gitScore = -1
 
+    # if the project has not been analysed already then analyse
     if links[ library ] not in gitURLScores:
         gitURLScores[ links[ library ] ] = gatherData( links[ library ] )
     gitScore = gitURLScores[ links[ library ] ]
 
+    # if the dependency has not been analysed already then analyse
     if lib not in vulScores:
         vulScores[ lib ] = vulPrediction( lib )
     vulScore = vulScores[ lib ]
 
+    # Print the results
+    print( "*************** RISK SCORE ANALYSIS FOR: ", lib, "***************" )
+    print( "\n" )
+    print( "* Project score: ", gitScore )
+    print( "\n" )
+    print( "* Vulnerability score: ", vulScore )
+    print( "\n" )
+
+    # Combine the Scores
     return ( vulScore + gitScore ) / 2
 
 ###############################################################################
 # SECTION 2: Vulnerability Prediction by Project Metrics                      #
 ###############################################################################
+
+# links for each of the projects using extracted data from dependencies
 links = dict()
 
 # This function takes a text file of maven dependencies to their user/repo github links
@@ -212,20 +230,25 @@ def populateDependencyLinks ():
 
     f.close()
 
-numDays = []
-nums = dict()
-avg = dict()
-dates = []
+issueNumDaysToFix = []
+issuesClosedPerMonth = dict()
+issueAvgDaysToFix = dict()
+issueCloseDates = []
+
+commitDates = []
+commitCounts = dict()
 
 # Gather Data for Both Time to Close Issues and Commits Per Month
 def gatherData ( repoUrl ):
     issues = []
     commits = []
     
+    issueNumDaysToFix.clear()
+    issueAvgDaysToFix.clear()
+    issuesClosedPerMonth.clear()
+    issueCloseDates.clear()
+
     commitDates.clear()
-    avg.clear()
-    nums.clear()
-    dates.clear()
     commitCounts.clear()
 
     if repoUrl in gitURLScores:
@@ -244,16 +267,17 @@ def gatherData ( repoUrl ):
     
     length = 1
 
+    # find necessary pagination/if there is no data
     if ( len( res.json() ) == 0 ):
         return -1
     elif ( len( res.json() ) < 100 ):
         length = 1
-
     else: 
         current = res.links[ 'last' ][ 'url' ].split( "=" )
         length = int( current[ 3 ] )
 
     i = 1
+
     while ( i <= length ):
         url = f"https://api.github.com/repos/{repoUrl}/issues?state=closed&per_page=100&page={i}"
         headers = { "Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
@@ -263,11 +287,12 @@ def gatherData ( repoUrl ):
         if ( res.status_code == 200 ):
                     issues.append( res )
         
+        # find and store issue close dates
         closedIssuesResolving( issues )
         
         i += 1
 
-        # Find Time to Close Issues
+    # Find Commits for projects
     url = f"https://api.github.com/repos/{repoUrl}/commits?per_page=100&page=1"
 
     headers = { "Accept": "application/vnd.github.v3+json", 'User-Agent': 'request'
@@ -279,11 +304,11 @@ def gatherData ( repoUrl ):
     
     length = 1
 
+    # find necessary pagination/if there is no data
     if ( len( res.json() ) == 0 ):
         return -1
     elif ( len( res.json() ) < 100 ):
         length = 1
-
     else: 
         current = res.links[ 'last' ][ 'url' ].split( "=" )
         length = int( current[ 2 ] )
@@ -298,43 +323,38 @@ def gatherData ( repoUrl ):
         if ( res.status_code == 200 ):
                     commits.append( res )
         
+        # find and store commit dates
         populateDates( commits )
         
         i += 1
 
+    # Return scores according to configuration options (accounts for if there is not enough data for either issues or commits)
     if currentConfig.issues_or_commits == 'both':
         
-        issues_prediction = projectPrediction( issues_over_time(), repoUrl, 'Issues' )
-        commits_prediction = projectPrediction( commits_over_time(), repoUrl, 'Commits' ) 
+        issues_prediction = ( projectPrediction( issues_over_time(), repoUrl, 'Issues' )  / int( currentConfig.num_days_to_fix ) ) * 10
+        commits_prediction = ( int( currentConfig.num_days_to_fix ) / projectPrediction( commits_over_time(), repoUrl, 'Commits' ) ) * 10 
 
-        if commits_prediction > int( currentConfig.num_commits ):
-            commits_prediction = ( commits_prediction - int( currentConfig.num_commits ) ) / int( currentConfig.num_commits ) * 10
-            return ( ( issues_prediction / int( currentConfig.num_days_to_fix ) * 10 ) + commits_prediction ) / 2 
-        elif commits_prediction == -1 or issues_prediction == -1:
-            if commits_prediction == -1 and issues_prediction == -1:
-                return -1
-            elif commits_prediction == -1:
-                return ( issues_prediction / int( currentConfig.num_days_to_fix ) * 10 ) / 2
-            elif issues_prediction == -1:
-                return commits_prediction / 2
-        else:
+        if commits_prediction == -1 and issues_prediction == -1:
+            return -1
+            
+        elif commits_prediction == -1:
             return issues_prediction / 2
+            
+        elif issues_prediction == -1:
+            return commits_prediction / 2
+        
     elif currentConfig.issues_or_commits == 'issues':
-        return projectPrediction( issues_over_time(), repoUrl, 'Issues' ) / int( currentConfig.num_days_to_fix ) * 10
+        return ( projectPrediction( issues_over_time(), repoUrl, 'Issues' ) / int( currentConfig.num_days_to_fix ) ) * 10
+    
     elif currentConfig.issues_or_commits == 'commits':
-        commits_prediction = projectPrediction( commits_over_time(), repoUrl, 'Commits' ) 
-        if commits_prediction > int( currentConfig.num_commits ):
-            commits_prediction = ( commits_prediction - int( currentConfig.num_commits ) ) / int( currentConfig.num_commits ) * 10
-            return commits_prediction
-        else:
-            return 0
+        return ( int( currentConfig.num_days_to_fix ) / projectPrediction( commits_over_time(), repoUrl, 'Commits' ) ) * 10
 
+
+    # Error with configuration
+    print( "Configuration for project analysis can be: 'both', 'issues' or 'commits'")
     return -1
 
-commitDates = []
-commitCounts = dict()
-
-# Populate dates for commit data gathered
+# Populate monthly dates for commit data gathered
 def populateDates ( commits ) :
     for x in commits:
         for i in x.json(): 
@@ -360,7 +380,6 @@ def commits_over_time () :
         "Actual": commitCounts.values()
     })
 
-
     df = df.drop_duplicates() 
 
     df.sort_values( by = 'Dates', ascending = True, inplace = True )
@@ -369,6 +388,7 @@ def commits_over_time () :
 
     df.set_index( df.Dates )
 
+    # Ensure it is monthly data in the index
     for i in idx:
         current  = pd.to_datetime( i )
         current = current.strftime( format = "%Y-%m" )
@@ -388,15 +408,19 @@ def projectPrediction ( df, repo, type ):
     if len( df[ 'Actual' ].unique() ) == 1:
         return -1
 
+    # Automatic Prediction
     autoparameters = auto_arima( y = df[ 'Actual' ], seasonal = False )
 
+    # Place predicted values in a dataframe
     df2 = pd.DataFrame({
        "Dates": autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ),
        "Prediction": autoparameters.fittedvalues()
     })
 
+    # Concatenate the data 
     df = pd.concat( [ df, df2 ] )
 
+    # Graph predicted vs actual values
     fig = px.line( data_frame= df, x = 'Dates', y = [ 'Actual', 'Prediction' ],  color_discrete_map={
                  "Actual": "#42DB04",
                 "Prediction": "#F66491"
@@ -418,7 +442,8 @@ def projectPrediction ( df, repo, type ):
         return -1  
     
     df = df.replace( np.nan, 0 )
-    
+
+    # EVALUATION SECTION
     df[ 'forecast_error' ] = df[ 'Actual' ] - df[ 'Prediction' ]
 
     # Calculate the absolute percentage errors
@@ -444,9 +469,10 @@ def projectPrediction ( df, repo, type ):
     # if the prediction is below 0 then return 0
     if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
         return 0
+    
     return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
 
-# Find the Time It Took to Close an Issue
+# Find the Time It Took to Close an Issue 
 def closedIssuesResolving ( issues ):
     for x in issues:
         for i in x.json(): 
@@ -459,28 +485,28 @@ def closedIssuesResolving ( issues ):
 
             time = date1obj - dateobj
                 
-            dates.append( date1.split( '-' )[ 0 ] + '-' + date1.split( '-' )[ 1 ] )
-            numDays.append( time.days )
+            issueCloseDates.append( date1.split( '-' )[ 0 ] + '-' + date1.split( '-' )[ 1 ] )
+            issueNumDaysToFix.append( time.days )
 
-# Display the length of time to close issues/how long they are open
+# Place issue close data over time in a DataFrame
 def issues_over_time () :
 
-    # average length of time per month
-    for i in range( len( dates ) ):
-        if ( dates[ i ] not in nums ):
-            nums[ dates[ i ] ] = 1 
-            avg[ dates[ i ] ] = numDays[ i ]
+    # Average length of time to close issues per month
+    for i in range( len( issueCloseDates ) ):
+        if ( issueCloseDates[ i ] not in issuesClosedPerMonth ):
+            issuesClosedPerMonth[ issueCloseDates[ i ] ] = 1 
+            issueAvgDaysToFix[ issueCloseDates[ i ] ] = issueNumDaysToFix[ i ]
         else:
-            avg[ dates[ i ] ] += numDays[ i ]
-            nums[ dates[ i ] ] += 1
+            issueAvgDaysToFix[ issueCloseDates[ i ] ] += issueNumDaysToFix[ i ]
+            issuesClosedPerMonth[ issueCloseDates[ i ] ] += 1
 
 
-    for x in nums.keys():
-        avg[ x ] = avg[ x ] / nums[ x ]
+    for x in issuesClosedPerMonth.keys():
+        issueAvgDaysToFix[ x ] = issueAvgDaysToFix[ x ] / issuesClosedPerMonth[ x ]
 
     df = pd.DataFrame({
-        "Dates": avg.keys(),
-        "Actual": avg.values()
+        "Dates": issueAvgDaysToFix.keys(),
+        "Actual": issueAvgDaysToFix.values()
     })
 
     df.sort_values( by = 'Dates', ascending = True, inplace = True )
@@ -489,6 +515,7 @@ def issues_over_time () :
 
     df.set_index( df.Dates )
 
+    # Ensure it is monthly data in the index
     for i in idx:
         current  = pd.to_datetime( i )
         current = current.strftime( format = "%Y-%m" )
@@ -565,6 +592,8 @@ def removeUnncessary ( array ):
 
     return array
 
+vulnerabilityDates = []
+
 # Predict Number of Vulnerabilities Per Month
 def vulPrediction ( dependency ):
     
@@ -574,6 +603,7 @@ def vulPrediction ( dependency ):
     
     vulnerabilities = []
 
+    # Gather data for each of the keywords
     for x in keywords:
         
         # Search NVD API using the keywords from the dependencies
@@ -612,15 +642,19 @@ def vulnerabilityPrediction ( df, dependency ):
     if len( df[ 'Actual' ].unique() ) == 1 or len( df ) == 0:
         return -1
 
+    # Automatic prediction
     autoparameters = auto_arima( y = df[ 'Actual' ], seasonal = False )
 
+    # Place the predicted values in a dataframe
     df2 = pd.DataFrame({
        "Dates": autoparameters.fittedvalues().axes[ 0 ].strftime( "%Y-%m" ),
        "Prediction": autoparameters.fittedvalues()
     })
 
+    # Concatenate the data
     df = pd.concat( [ df, df2 ] )
 
+    # Graph predicted vs actual values
     fig = px.line( data_frame= df, x = 'Dates', y = [ 'Actual', 'Prediction' ],  color_discrete_map={
                  "Actual": "#0AFBFF",
                 "Prediction": "#FBFF00"
@@ -643,6 +677,7 @@ def vulnerabilityPrediction ( df, dependency ):
 
     df = df.replace( np.nan, 0 )
     
+    # EVALUATION SECTION
     df[ 'forecast_error' ] = df[ 'Actual' ] - df[ 'Prediction' ]
 
     # Calculate the absolute percentage errors
@@ -672,7 +707,6 @@ def vulnerabilityPrediction ( df, dependency ):
 
 # Populate the Dates for gathered vulnerabilities per month
 def popDates ( vuls ) :
-
     for x in vuls:
         date = x[ 'published' ]           
         date = date.split( "T") 
@@ -681,9 +715,7 @@ def popDates ( vuls ) :
 
         vulnerabilityDates.append( date )
 
-vulnerabilityDates = []
-
-# Display Vulnerabilities Over Time
+# Place number of vulnerabilities over time in a dataframe
 def vuls_over_time ():
     
     i = 0
@@ -713,6 +745,7 @@ def vuls_over_time ():
 
     df.set_index( df.Dates )
 
+    # Ensure it is monthly data in the index
     for i in idx:
         current  = pd.to_datetime( i )
         current = current.strftime( format = "%Y-%m" )
@@ -733,6 +766,7 @@ def main():
     populateDependencyLinks()
     configuration()
 
+    # Analysis
     findDependencies()
     
 
