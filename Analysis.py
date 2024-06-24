@@ -55,6 +55,12 @@ def configuration ():
     if int( data[ 'num_commits' ] ) == 0:
         print( "Error: num_commits cannot be 0" )
         quit()
+    if int( data[ 'num_days_to_fix' ] ) == 0:
+        print( "Error: num_days_to_fix cannot be 0" )
+        quit()
+    if int( data[ 'num_vuls' ] ) == 0:
+        print( "Error: num_vuls cannot be 0" )
+        quit()
 
     f.close()
 
