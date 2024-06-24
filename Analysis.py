@@ -493,8 +493,6 @@ def projectPrediction ( df, repo, type ):
     # if the prediction is below 0 then return 0
     if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
         return 0
-    
-    print( "FINAL VALUE", repo, autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] )
 
     return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
 
