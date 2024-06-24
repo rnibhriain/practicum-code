@@ -425,17 +425,21 @@ def projectPrediction ( df, repo, type ):
     df[ 'absolute_percentage_error' ] = ( df[ 'forecast_error' ].abs() / df[ 'Actual' ].replace( 0, 1 ) ) * 100
 
     # Calculate the MAPE
-    mape = df[ 'absolute_percentage_error' ].mean()
-
-    print( "MAPE:1", mape )
+    mape = df[ 'absolute_percentage_error' ].mean() 
 
     mae = mean_absolute_error( df[ 'Actual' ], df[ 'Prediction' ] )
 
-    print( "MAE:", mae )
-
     rmse = mean_squared_error( df[ 'Actual' ], df[ 'Prediction' ], squared = False )
 
-    print( "RMSE:", rmse )
+    print( "*******************************************************************************" )
+    print( "* Evaluation Metrics for ", type, " Prediction for ", repo, ":" )
+    print( "\n" )
+    print( "* MAPE:", mape )
+    print( "\n" )
+    print( "* MAE:", mae )
+    print( "\n" )
+    print( "* RMSE:", rmse )
+    print( "*******************************************************************************\n" )
 
     # if the prediction is below 0 then return 0
     if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
@@ -503,8 +507,6 @@ def issues_over_time () :
 
 # extract keywords for each dependency
 def extractKeywords ( dependency ):
-    
-    print( dependency )
     
     array = dependency.split( "-" )
 
@@ -586,10 +588,6 @@ def vulPrediction ( dependency ):
         if response != None:
             
             if response.status_code == 200:
-                
-                print( x )
-
-                print( len( response.json()[ 'vulnerabilities' ] ) )
 
                 for i in response.json()[ 'vulnerabilities' ]:
                     if i[ 'cve' ] not in vulnerabilities:
@@ -639,6 +637,10 @@ def vulnerabilityPrediction ( df, dependency ):
     
     fig.show()
 
+    # not enough data
+    if len( set( autoparameters.fittedvalues().values ) ) == 1:
+        return -1 
+
     df = df.replace( np.nan, 0 )
     
     df[ 'forecast_error' ] = df[ 'Actual' ] - df[ 'Prediction' ]
@@ -647,21 +649,21 @@ def vulnerabilityPrediction ( df, dependency ):
     df[ 'absolute_percentage_error' ] = ( df[ 'forecast_error' ].abs() / df[ 'Actual' ].replace( 0, 1 ) ) * 100
 
     # Calculate the MAPE
-    mape = df[ 'absolute_percentage_error' ].mean()
-
-    print( "MAPE:1", mape )
+    mape = df[ 'absolute_percentage_error' ].mean() 
 
     mae = mean_absolute_error( df[ 'Actual' ], df[ 'Prediction' ] )
 
-    print( "MAE:", mae )
-
     rmse = mean_squared_error( df[ 'Actual' ], df[ 'Prediction' ], squared = False )
 
-    print( "RMSE:", rmse )
-
-    # not enough data
-    if len( set( autoparameters.fittedvalues().values ) ) == 1:
-        return -1  
+    print( "**************************************************************************************************" )
+    print( "* Evaluation Metrics for Vulnerability Prediction for", dependency, ":" )
+    print( "\n" )
+    print( "* MAPE:", mape )
+    print( "\n" )
+    print( "* MAE:", mae )
+    print( "\n" )
+    print( "* RMSE:", rmse )
+    print( "**************************************************************************************************\n" ) 
 
     # if the prediction is below 0 then return 0
     if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
@@ -670,8 +672,6 @@ def vulnerabilityPrediction ( df, dependency ):
 
 # Populate the Dates for gathered vulnerabilities per month
 def popDates ( vuls ) :
-    
-    print( len( vuls ) )
 
     for x in vuls:
         date = x[ 'published' ]           
