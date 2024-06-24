@@ -51,6 +51,10 @@ def configuration ():
                             data[ 'issues_or_commits' ],
                             data[ 'token' ],
                              data[ 'nvd_key' ] )
+    
+    if int( data[ 'num_commits' ] ) == 0:
+        print( "Error: num_commits cannot be 0" )
+        quit()
 
     f.close()
 
@@ -332,7 +336,11 @@ def gatherData ( repoUrl ):
     if currentConfig.issues_or_commits == 'both':
         
         issues_prediction = float( projectPrediction( issues_over_time(), repoUrl, 'Issues' )  / int( currentConfig.num_days_to_fix ) ) * 10
-        commits_prediction = float( int( currentConfig.num_days_to_fix ) / projectPrediction( commits_over_time(), repoUrl, 'Commits' ) ) * 10 
+        commits_prediction = projectPrediction( commits_over_time(), repoUrl, 'Commits' )
+        if commits_prediction == 0:
+            commits_prediction = float( int( currentConfig.num_days_to_fix ) / 1 ) * 10
+        else:
+            commits_prediction = float( int( currentConfig.num_days_to_fix ) / commits_prediction ) * 10 
 
         if commits_prediction == -1 and issues_prediction == -1:
             return -1
@@ -353,8 +361,9 @@ def gatherData ( repoUrl ):
     
     elif currentConfig.issues_or_commits == 'commits':
         commits_prediction = projectPrediction( commits_over_time(), repoUrl, 'Commits' )
-
-        if commits_prediction != -1:
+        if commits_prediction == 0:
+            return float( int( currentConfig.num_days_to_fix ) / 1 ) * 10
+        elif commits_prediction != -1:
             return float( int( currentConfig.num_days_to_fix ) / commits_prediction ) * 10
         
         return commits_prediction
