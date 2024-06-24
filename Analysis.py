@@ -344,9 +344,9 @@ def gatherData ( repoUrl ):
         issues_prediction = float( projectPrediction( issues_over_time(), repoUrl, 'Issues' )  / int( currentConfig.num_days_to_fix ) ) * 10
         commits_prediction = projectPrediction( commits_over_time(), repoUrl, 'Commits' )
         if commits_prediction == 0:
-            commits_prediction = float( int( currentConfig.num_days_to_fix ) / 1 ) * 10
+            commits_prediction = float( int( currentConfig.num_commits ) / 1 ) * 10
         else:
-            commits_prediction = float( int( currentConfig.num_days_to_fix ) / commits_prediction ) * 10 
+            commits_prediction = float( int( currentConfig.num_commits ) / commits_prediction ) * 10 
 
         if commits_prediction == -1 and issues_prediction == -1:
             return -1
@@ -368,9 +368,9 @@ def gatherData ( repoUrl ):
     elif currentConfig.issues_or_commits == 'commits':
         commits_prediction = projectPrediction( commits_over_time(), repoUrl, 'Commits' )
         if commits_prediction == 0:
-            return float( int( currentConfig.num_days_to_fix ) / 1 ) * 10
+            return float( int( currentConfig.num_commits ) / 1 ) * 10
         elif commits_prediction != -1:
-            return float( int( currentConfig.num_days_to_fix ) / commits_prediction ) * 10
+            return float( int( currentConfig.num_commits ) / commits_prediction ) * 10
         
         return commits_prediction
 
@@ -493,6 +493,8 @@ def projectPrediction ( df, repo, type ):
     # if the prediction is below 0 then return 0
     if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
         return 0
+    
+    print( "FINAL VALUE", repo, autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] )
 
     return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
 
