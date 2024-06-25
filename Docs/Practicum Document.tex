@@ -2,6 +2,7 @@
 
 \usepackage{etoolbox}
 \usepackage{scrextend}
+\usepackage{graphicx}
 
 % remove \centering from \section
 \patchcmd{\section}{\centering}{}{}{}
@@ -10,18 +11,12 @@
 \title{An Analysis of Risk\\ in Open-Source Projects}
 
 \author{\IEEEauthorblockN{Róisín Ní Bhriain}
-\IEEEauthorblockA{\\Email: roisin.nibhriain3@mail.dcu.ie\\
-                    Student Number: 23269640\\}
+\IEEEauthorblockA{\\Student Number: 23269640\\}
 \and
 \IEEEauthorblockA{Sneha Dechamma Mallengada Suresh\\
-    Email: sneha.mallengadasuresh3@mail.dcu.ie\\
     Student Number: 23262168\\}}
 
-
 \maketitle
-
-\date{2024-07-23}
-
 
 \begin{description}
     \item[]
@@ -41,29 +36,40 @@ This paper explores the methods used in the prediction of risk when using open-s
 
 
 \section{Introduction}
+In November 2021 a vulnerability was discovered in the popular open-source logging library Apache Log4j. This software is widely used in web portals. The vulnerability in this package means that hackers can run malicious code remotely on a victim's machine (H. Gupta, A. Chaudhary, and A. Kumar, 2022). The main aim of the log4j vulnerability is to obtain Lightweight Directory Access Protocol information and this will serve as a gateway to full control of the machine. The attack works with several steps: information gathering, weaponisation, delivery, exploitation and installation (F. Maulana et al., 2023). 
 
+This paper explores the prediction of risks in maven dependency trees through examining both GitHub project activity and NVD vulnerability CVEs. ARIMA prediction is used for both sets of data based on user configuration data and returns a coloured graph based on the analysed risk. 
 
 \section{Related Work}
 
-\section{Datasets}
+\subsection{Project Metadata Analysis}
 
-\section{Method}
+
+\subsection{Vulnerability CVE Data Analysis}
+
+\section{Methodology}
 This section explores the prediction of risk methods that we used.
 
 \subsection{Finding Dependencies Algorithm}
-To find dependencies of different projects we focused Maven dependency trees. 
+To find dependencies of different projects we focused on Maven dependency trees. We first extract each of the 
 
 \subsection{Project Meta-Data Prediction}
 
 \subsection{Vulnerability Database Prediction}
 
-\section{Evaluation}
+\subsection{Risk Calculations}
+In terms of calculating risk we implemented some configurations options for a user to decide how many commits, days-to-close issues, and vulnerabilities per month are acceptable. 
+\begin{figure}
+    \centering
+    \includegraphics[width=01\linewidth]{image.png}
+    \caption{Dependency Tree With Risk Levels Colour Coded}
+\end{figure}
 
-\section{Results}
-
+\section{Results \& Evaluation}
+For the evaluation of the predictions in this project we used the commonly used metrics: Mean absolute percentage error (MAPE), mean absolute error (MAE), and root mean squared error (RMSE). 
 
 \section{Conclusions \& Further Work}
-The conclusion goes here.
+For the purpose of this practicum we focused on examining maven dependency trees which is primarily used for Java projects. Further work could be done to examine other package manager dependency trees such as \textit{PyPI} for Python, \textit{NPM} for JavaScript, and \textit{Conan} for C. 
 
 \begin{thebibliography}{1}
 
