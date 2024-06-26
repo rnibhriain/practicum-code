@@ -665,7 +665,7 @@ def vulnerabilityPrediction ( df, dependency ):
 
     # ensure that the values are not constant
     if len( df[ 'Actual' ].unique() ) == 1 or len( df ) == 0:
-        return -1
+        return 0
 
     # Automatic prediction
     autoparameters = auto_arima( y = df[ 'Actual' ], seasonal = False )
