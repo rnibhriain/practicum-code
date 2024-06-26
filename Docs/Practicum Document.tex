@@ -59,11 +59,24 @@ To find dependencies of different projects we focused on Maven dependency trees.
 
 \subsection{Risk Calculations}
 In terms of calculating risk we implemented some configurations options for a user to decide how many commits, days-to-close issues, and vulnerabilities per month are acceptable. 
+
+
+\[( x / numDaysToFixIssues ) * 10\]
+
+\[( numCommits / x ) * 10\]
+
+\[( x / vulsCountPerMonth ) * 10\]
+
+These are the calculations we used for the risk scores for each of the sections. There is the option to decide project activity based on issues fix time, commits per month or both. The user supplies the configuration options of \textit{numDaysToFixIssues}, \textit{numCommits}, and \textit{vulCountsPerMonth}. That way the acceptable levels of risk are set. The idea is that they are then assigned a risk score: where not enough is < 0, 0-2.5 is low risk, 2.5-5 is medium risk, 5-7.5 is high risk and > 7.5 is severe risk. 
+
 \begin{figure}
     \centering
     \includegraphics[width=01\linewidth]{image.png}
-    \caption{Dependency Tree With Risk Levels Colour Coded}
+    \caption{Dependency Tree With Risk Levels Colour Coded} 
 \end{figure}
+
+Fig 1 shows a final dependency tree with colour coded risk evaluations of each of the dependencies.
+
 
 \section{Results \& Evaluation}
 For the evaluation of the predictions in this project we used the commonly used metrics: Mean absolute percentage error (MAPE), mean absolute error (MAE), and root mean squared error (RMSE). 
