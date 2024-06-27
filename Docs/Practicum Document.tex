@@ -1,4 +1,4 @@
-\documentclass[10pt, onecolumn]{IEEEtran}
+\documentclass[10pt, onecolumn, compsoc, conference]{IEEEtran}
 
 \usepackage{etoolbox}
 \usepackage{scrextend}
@@ -7,14 +7,15 @@
 % remove \centering from \section
 \patchcmd{\section}{\centering}{}{}{}
 
+
 \begin{document}
-\title{An Analysis of Risk\\ in Open-Source Projects}
+\title{An Analysis of Risk in \\Open-Source Project Dependenciess}
 
 \author{\IEEEauthorblockN{Róisín Ní Bhriain}
-\IEEEauthorblockA{\\Student Number: 23269640\\}
+\IEEEauthorblockA{Student Number: 23269640}
 \and
-\IEEEauthorblockA{Sneha Dechamma Mallengada Suresh\\
-    Student Number: 23262168\\}}
+\IEEEauthorblockN{Sneha Dechamma Mallengada Suresh}
+    \IEEEauthorblockA{Student Number: 23262168}}
 
 \maketitle
 
@@ -29,29 +30,33 @@
 
 
 \begin{abstract}
-\begin{addmargin}[4em]{4em}
-This paper explores the methods used in the prediction of risk when using open-source software. There are a number of methods used and the aim is to combine these to give a more comprehensive view of the risks in using a particular open-source project. We examine the literature to decide on an appropriate prediction algorithm for each section. We provide a graph of the final results which can be used to aid in finding where the risk lies in the dependency trees. 
+\begin{addmargin}[4.2em]{4.2em}
+This paper explores the methods used in the prediction of risk when using open-source software. There are a number of methods used and the aim is to combine these to give a more comprehensive view of the risks in using a particular open-source project. We examine the literature to decide on an appropriate prediction algorithm for each section. We aim to develop a tool to investigate the risks in Maven dependency trees. We provide a graph of the final results which can be used to aid in finding where the risk lies in the dependency trees. 
 \end{addmargin}
 \end{abstract}
 
 
 \section{Introduction}
-In November 2021 a vulnerability was discovered in the popular open-source logging library Apache Log4j. This software is widely used in web portals. The vulnerability in this package means that hackers can run malicious code remotely on a victim's machine (H. Gupta, A. Chaudhary, and A. Kumar, 2022). The main aim of the log4j vulnerability is to obtain Lightweight Directory Access Protocol information and this will serve as a gateway to full control of the machine. The attack works with several steps: information gathering, weaponisation, delivery, exploitation and installation (F. Maulana et al., 2023). 
-
-This paper explores the prediction of risks in Maven dependency trees through examining both GitHub project activity and NVD vulnerability CVEs. ARIMA prediction is used for both sets of data based on user configuration data and returns a coloured graph based on the analysed risk. 
+This paper explores the prediction of risks in Maven dependency trees through examining both GitHub project activity and NVD vulnerability CVE data. ARIMA prediction is used for both sets of data based on user configuration data and returns a coloured graph based on the analysed risk. 
 
 \section{Related Work}
+In this section, we review relevant work in the prediction of risk in open-source software. We examine the machine learning models used as well as the different objects of analysis used in the predictions.  
 
 \subsection{Project Metadata Analysis}
 
 
 \subsection{Vulnerability CVE Data Analysis}
+\section{Case Studies}
+In this section we will identify a number of case studies where a tool like this would have been valuable to see whether a project depended on a risky project. 
+
+\subsection{Log4j}
+In November 2021 a vulnerability was discovered in the popular open-source logging library Apache Log4j. This software is widely used in web portals. The vulnerability in this package means that hackers can run malicious code remotely on a victim's machine (H. Gupta, A. Chaudhary, and A. Kumar, 2022). The main aim of the log4j vulnerability is to obtain Lightweight Directory Access Protocol information and this will serve as a gateway to full control of the machine. The attack works with several steps: information gathering, weaponisation, delivery, exploitation and installation (F. Maulana et al., 2023). Once these vulnerabilities were reported a user could use the project to discover that some of their dependencies have vulnerabilities and are thus classed as risky. 
+
 
 \section{Methodology}
-This section explores the prediction of risk methods that we used.
+This paper explores the creation of a tool to predict risk in dependency trees. We aim to combine two of the objects of analysis to give a more well rounded analysis vs focusing on one. In this section we initially describe the data we used and then the prediction methods as well as the calculations of risk that we used. 
 
 \subsection{Finding Dependencies Algorithm}
-To find dependencies of different projects we focused on Maven dependency trees. We first extract each of the 
 
 \subsection{Project Meta-Data Prediction}
 
@@ -59,7 +64,6 @@ To find dependencies of different projects we focused on Maven dependency trees.
 
 \subsection{Risk Calculations}
 In terms of calculating risk we implemented some configurations options for a user to decide how many commits, days-to-close issues, and vulnerabilities per month are acceptable. 
-
 
 \[ projectActivityScore = ( x / numDaysToFixIssues ) * 10\]
 
@@ -75,13 +79,15 @@ These are the calculations we used for the risk scores for each of the sections.
 \begin{figure}
     \centering
     \includegraphics[width=01\linewidth]{image.png}
-    \caption{Dependency Tree With Risk Levels Colour Coded} 
+    \caption{Dependency Tree Results With Risk Levels Colour Coded} 
 \end{figure}
 
-Fig 1 shows a final dependency tree with colour coded risk evaluations of each of the dependencies.
+Figure 1 shows a final dependency tree with colour coded risk evaluations of each of the dependencies.This figure was based on a user configuration of two vulnerabilities being acceptable and 70 being the minimum number of commits per month as acceptable. 
 
 
 \section{Results \& Evaluation}
+To evaluate the algorithm we used a number of different maven projects with different dependencies. We made sure to use some projects that were discussed as above in the case studies section. We used a Log4j maven sample project. 
+
 We found that the project activity predictions generally performed a lot better than the vulnerability CVE data - presumably due to a lack of data in the NVD databases (which can in some cases mean no vulnerabilities - a good thing). A lot of the dependencies were also grouped in the same projects on GitHub which meant that there was only the need to calculate the prediction for these once. An issue we ran into was that there was no way of automatically using an API to find the GitHub projects of the dependencies - this meant we had to manually go through each of the dependency trees and find the project URLs on GitHub which does not bode well for scaling the project up for larger Maven projects. 
 
 For the evaluation of the predictions in this project we used the commonly used metrics: Mean absolute percentage error (MAPE), mean absolute error (MAE), and root mean squared error (RMSE). 
@@ -101,11 +107,8 @@ H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
 \section{Graphs}
 This section contains other important graphs that we did not include in the main body of the project.
 
-
 \ifCLASSOPTIONcaptionsoff
   \newpage
 \fi
 
 \end{document}
-
-
