@@ -3,9 +3,12 @@
 \usepackage{etoolbox}
 \usepackage{scrextend}
 \usepackage{graphicx}
+\usepackage[style=numeric,sorting=none]{biblatex}
 
 % remove \centering from \section
 \patchcmd{\section}{\centering}{}{}{}
+
+\addbibresource{references.bib}
 
 
 \begin{document}
@@ -50,7 +53,7 @@ In this section, we review relevant work in the prediction of risk in open-sourc
 In this section we will identify a number of case studies where a tool like this would have been valuable to see whether a project depended on a risky project. 
 
 \subsection{Log4j}
-In November 2021 a vulnerability was discovered in the popular open-source logging library Apache Log4j. This software is widely used in web portals. The vulnerability in this package means that hackers can run malicious code remotely on a victim's machine (H. Gupta, A. Chaudhary, and A. Kumar, 2022). The main aim of the log4j vulnerability is to obtain Lightweight Directory Access Protocol information and this will serve as a gateway to full control of the machine. The attack works with several steps: information gathering, weaponisation, delivery, exploitation and installation (F. Maulana et al., 2023). Once these vulnerabilities were reported a user could use the project to discover that some of their dependencies have vulnerabilities and are thus classed as risky. 
+In November 2021 a vulnerability was discovered in the popular open-source logging library Apache Log4j. This software is widely used in web portals. The vulnerability in this package means that hackers can run malicious code remotely on a victim's machine \cite{h_gupta_identification_2022}. The main aim of the log4j vulnerability is to obtain Lightweight Directory Access Protocol information and this will serve as a gateway to full control of the machine. The attack works with several steps: information gathering, weaponisation, delivery, exploitation and installation \cite{f_maulana_unmasking_2023}. Once these vulnerabilities were reported a user could use the project to discover that some of their dependencies have vulnerabilities and are thus classed as risky. 
 
 
 \section{Methodology}
@@ -95,13 +98,7 @@ For the evaluation of the predictions in this project we used the commonly used 
 \section{Conclusions \& Further Work}
 For the purpose of this paper we focused on examining Maven dependency trees which is primarily used for Java projects. Further work could be done to examine other package manager dependency trees such as \textit{PyPI} for Python, \textit{NPM} for JavaScript, and \textit{Conan} for C. 
 
-\begin{thebibliography}{1}
-
-\bibitem{IEEEhowto:kopka}
-H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
-  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
-
-\end{thebibliography}
+\printbibliography
 
 \appendices
 \section{Graphs}
