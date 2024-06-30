@@ -57,7 +57,7 @@ The research questions that we plan to focus on is as follows:\\
 
 \textit{RQ1:} Can we combine features extracted from the risk prediction methods to provide developers with a more effective risk measure that allows them to minimise risk when choosing between multiple candidate open-source components?\\
 
-\textit{RQ2:} Can we create a visual dependency tree for a project consisting of colour coded nodes based on the predicted risks?\\
+\textit{RQ2:} Can we create a visual dependency tree for a project consisting of colour coded nodes based on the predicted risks?\\ 
 
 By answering the above questions we aim to provide some new insights on the area of risk prediction for Maven projects. 
 
@@ -85,8 +85,29 @@ In April 2014 the Heartbleed vulnerability was discovered in the OpenSSL connect
 \section{Methodology}
 This paper explores the creation of a tool to predict risk in dependency trees. We aim to combine two of the objects of analysis to give a more well-rounded analysis vs focusing on one. In this section we initially describe the data we used and then the prediction methods as well as the calculations of risk that we used. 
 
-\subsection{Finding Dependencies Algorithm}
-The finding dependencies algorithm 
+\subsection{Data Gathering}
+The first set of test data we used for this project were gathered from various Maven projects available on GitHub. We gathered some small projects to test the initial graphing and prediction techniques. As one of the case studies we focused on was the Log4j vulnerability we made sure to test a sample project that incorporated the Log4j logging library. 
+
+We used the GitHub API for the project activity risk prediction and we decided that time-to-close issues and commits per month were appropriate measures of risk for this project as they were identified as predictors of a project's health in the literature we studied. The project has the option to predict either the issue data, the commit data or both at the same time.
+
+We used the NVD API for the vulnerability data risk prediction and we decided not to discriminate between the different severity levels as there was not a large number of data for each of the dependencies. We gathered the number of vulnerabilities per month for each of these using this API. 
+
+The list of sources of data and the purpose of their use for this project can be seen in Table 1. 
+
+\begin{table}
+ \caption{List of Sources Used}
+\label{my-label}
+\begin{tabular}{|*{12}{p{2.9cm}|}}
+\hline
+    \textbf{Source} & \textbf{Purpose} & \textbf{Type} \\ \hline
+    GitHub projects & Find Dependencies & Maven-dependency trees \\ \hline
+    GitHub & Project Meta-data & API  \\ \hline
+    National Vuln. Database & Vulnerability Prediction & CVE API \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Dependencies Graphing}
+The dependency graphing we did worked by being placed in a maven project and then running the dependency tree maven command. The resulting tree is analysed in our project and each library keyword is extracted for the coordinating GitHub URLs that we gathered. We then predicted the project activity and vulnerability data using the extracted libraries and the dependency keywords. After the risk scores have been returned each of the dependencies is assigned a node in the graph according to its depth and the colour is assigned based on the risk score. 
 
 \subsection{Project Meta-Data Prediction}
 For the project meta-data prediction, we used data from the GitHub API. 
@@ -122,6 +143,8 @@ Figure 1 shows a final dependency tree with colour-coded risk evaluations of eac
 We found that the project activity predictions generally performed a lot better than the vulnerability CVE data - presumably due to a lack of data in the NVD databases (which can in some cases mean no vulnerabilities - a good thing). A lot of the dependencies were also grouped in the same projects on GitHub which meant that there was only the need to calculate the prediction for these once. An issue we ran into was that there was no way of automatically using an API to find the GitHub projects of the dependencies - this meant we had to manually go through each of the dependency trees and find the project URLs on GitHub which does not bode well for scaling the project up for larger Maven projects. 
 
 For the evaluation of the predictions in this project, we used the commonly used metrics: Mean absolute percentage error (MAPE), mean absolute error (MAE), and root mean squared error (RMSE). 
+
+% Insert a table of average results for each of the prediction types
 
 \section{Conclusions \& Further Work}
 For the purpose of this paper, we focused on examining Maven dependency trees which are primarily used for Java projects. Further work could be done to examine other package manager dependency trees such as \textit{PyPI} for Python, \textit{NPM} for JavaScript, and \textit{Conan} for C. 

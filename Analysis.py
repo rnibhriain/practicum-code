@@ -79,9 +79,9 @@ riskScores = dict()
 def findDependencies ():
 
     # this command gets the dependencies from a maven project
-    # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell=True )
+    subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell = True )
 
-    f = open( "Data/dependencies4.txt", "r" )
+    f = open( "Data/dependencies.txt", "r" )
 
     # add central node for the project
     G.add_node( "PROJECT", color = "black",  shape = 'square' )
