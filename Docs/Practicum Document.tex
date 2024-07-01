@@ -83,37 +83,52 @@ In November 2021 a vulnerability was discovered in the popular open-source loggi
 In April 2014 the Heartbleed vulnerability was discovered in the OpenSSL connection versions 1.0.1 and 1.0.1f. OpenSSl is a popular open-source cryptography library. The vulnerability comes from the established connection being kept 'alive; through \textit{Heartbeat} messages. Hackers could craft a similar message to the official \textit{Heartbeat} Message and thus receive private information back \cite{s_kyatam_heartbleed_2017}. It was estimated that 24-55\% of HTTPS servers in the Alexa Top 1 million were vulnerable and even 48 hours after the disclosure of the vulnerability still around 11\% remained vulnerable. This attack could reveal secure data such as private keys and only 10\% of affected servers changed their TLS certificates and of these 14\% did not replace their private keys thus gaining no protection \cite{durumeric_matter_2014}. A number of affected servers would not have know that they were affected so a tool such as the one we propose would have been useful in discovering that they were vulnerable to Heartbleed. 
 
 \section{Methodology}
-This paper explores the creation of a tool to predict risk in dependency trees. We aim to combine two of the objects of analysis to give a more well-rounded analysis vs focusing on one. In this section we initially describe the data we used and then the prediction methods as well as the calculations of risk that we used. 
+This paper explores the creation of a tool to predict risk in dependency trees. We aim to combine two of the objects of analysis to give a more well-rounded analysis vs focusing on one. In this section we initially describe the data we used and then the prediction methods as well as the calculations of risk that we used. For both of the predictions we did not consider seasonality as papers we analysed above did not find it to be a significant parameter. 
 
 \subsection{Data Gathering}
 The first set of test data we used for this project were gathered from various Maven projects available on GitHub. We gathered some small projects to test the initial graphing and prediction techniques. As one of the case studies we focused on was the Log4j vulnerability we made sure to test a sample project that incorporated the Log4j logging library. 
 
-We used the GitHub API for the project activity risk prediction and we decided that time-to-close issues and commits per month were appropriate measures of risk for this project as they were identified as predictors of a project's health in the literature we studied. The project has the option to predict either the issue data, the commit data or both at the same time.
+We used the GitHub API for the project activity risk prediction and we decided that time-to-close issues and commits per month were appropriate measures of risk for this project as they were identified as predictors of a project's health in the literature we studied. The project has the option to predict either the issue data, the commit data or both at the same time. To gather the GitHub URLs for each of the dependencies we had to manually search for them and add them to our file of libraries to corresponding URLs which was an unfortunate roadblock. 
 
 We used the NVD API for the vulnerability data risk prediction and we decided not to discriminate between the different severity levels as there was not a large number of data for each of the dependencies. We gathered the number of vulnerabilities per month for each of these using this API. 
 
-The list of sources of data and the purpose of their use for this project can be seen in Table 1. 
+The list of sources of data and the purpose of their use for this project can be seen in Table \ref{sourcelist}. We give the source of our data, the purpose of the data, and the type of data that was used. 
 
 \begin{table}
  \caption{List of Sources Used}
-\label{my-label}
-\begin{tabular}{|*{12}{p{2.9cm}|}}
+\label{sourcelist}
+\begin{center}
+\begin{tabular}{|c|c|c|}
 \hline
     \textbf{Source} & \textbf{Purpose} & \textbf{Type} \\ \hline
     GitHub projects & Find Dependencies & Maven-dependency trees \\ \hline
     GitHub & Project Meta-data & API  \\ \hline
     National Vuln. Database & Vulnerability Prediction & CVE API \\ \hline
 \end{tabular}
+\end{center}
 \end{table}
 
 \subsection{Dependencies Graphing}
-The dependency graphing we did worked by being placed in a maven project and then running the dependency tree maven command. The resulting tree is analysed in our project and each library keyword is extracted for the coordinating GitHub URLs that we gathered. We then predicted the project activity and vulnerability data using the extracted libraries and the dependency keywords. After the risk scores have been returned each of the dependencies is assigned a node in the graph according to its depth and the colour is assigned based on the risk score. 
+The dependency graphing we did worked by being placed in a maven project and then running the dependency tree maven command. The resulting tree is analysed in our project and each library keyword is extracted for the coordinating GitHub URLs that we gathered. We then predicted the project activity and vulnerability data using the extracted libraries and the dependency keywords. After the risk scores have been returned each of the dependencies is assigned a node in the graph according to its depth and the colour is assigned based on the risk score.
+
+We used a network graph with each of the dependencies displayed as nodes on the graph with their risk scores assigned as colours. The project itself is displayed as a black square node. We have a key defining the risk levels of each of the nodes for helpful decoding of the graphs as displayed in Figure \ref{fig:key}. The edges represent the dependency links between nodes and the depth of each of the nodes from the project itself represents how dependencies can rely on other dependencies. The graph can show users how they are relying on dependencies that they did not directly add to their project and how risk can be involved in importing different dependencies. 
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{Key.png}
+    \caption{The key for the risk dependency graph.}
+    \label{fig:key}
+\end{figure}
 
 \subsection{Project Meta-Data Prediction}
-For the project meta-data prediction, we used data from the GitHub API. 
+For the project meta-data prediction, we used data from the GitHub API. The user has the option to specify whether they wish to investigate the issue or commit data or both. We used all of the data available instead of specifying a specific time range as all of the projects had different time ranges available to use. We gathered all of the commits/closed issues available on the GitHub API and processed this to ensure we had all of the monthly data. In the case of commits this was simply a count of commits per month and we added a 0 for each of the months with no data. For the issues we calculated the time-to-close in days for each and got a monthly average for this, adding a 0 for each of the months that had no data. 
+
+For the prediction itself we used the date as an index and after some manual calculations of the \textit{d} parameter and differencing the data, we also examined the \textit{pacf} and \textit{acf} graphs and decided it was not feasible to implement this system of parameter selection at a large scale. We used the \textit{Auto ARIMA} library to make the predictions. The final value predicted for the current month was returned for each of the GitHub libraries. If the data is constant or there is no data a -1 was returned as there is not enough data to make a prediction. 
 
 \subsection{Vulnerability CVE Data Prediction}
-For the vulnerability CVE data prediction we used vulnerability data from the NVD API.
+For the vulnerability CVE data prediction we used vulnerability data from the NVD API. We first split up all of the dependencies into keywords to ensure that we got all of the relevant CVEs for that dependency. For each of the keywords we make a request to the API and ensure that each of the returned CVEs are not in the already gathered list of CVEs. We then gather the monthly data similar to commits above we count the number of commits per month and fill in a 0 where there are none. 
+
+The prediction method used was a very similar method as for the project activity method. As there is not a lot of data for the vulnerability prediction section we can assume if the values are constant or there is no data then we can safely assume that there will be no vulnerabilities that month and return a 0. We used the \textit{Auto ARIMA} library in this case to make the predictions as well and we ensured that the data was sorted by date. 
 
 \subsection{Risk Calculations}
 In terms of calculating risk, we implemented some configuration options for a user to decide how many commits, days-to-close issues, and vulnerabilities per month are acceptable. 
@@ -126,28 +141,72 @@ In terms of calculating risk, we implemented some configuration options for a us
 
 \[overallScore = ( projectActivityScore + vulnerabilityScore) / 2\]
 
-These are the calculations we used for the risk scores. There is the option to decide project activity based on issues fix time, commits per month or both. The user supplies the configuration options of \textit{numDaysToFixIssues}, \textit{numCommits}, and \textit{vulCountsPerMonth}. They set the acceptable levels of risk for their project. The idea is that they are then assigned a risk score: where not enough is < 0, 0-2.5 is low risk, 2.5-5 is medium risk, 5-7.5 is high risk and > 7.5 is severe risk. 
+These are the calculations we used for the risk scores. There is the option to decide project activity based on issues fix time, commits per month or both. The user supplies the configuration options of \textit{numDaysToFixIssues}, \textit{numCommits}, and \textit{vulCountsPerMonth}. They set the acceptable levels of risk for their project. The idea is that they are then assigned a risk score: where not enough is < 0, 0-2.5 is low risk, 2.5-5 is medium risk, 5-7.5 is high risk and anything above 7.5 is severe risk. the overall score gave the user a score from 0 which was displayed on the graph using the key from Figure \ref{fig:key}. We decided to leave the risk up to the user to decide as some organisations/developers would have different ideas of what is an acceptable number of commits/time to close issues/vulnerabilities per month. 
 
-
-\section{Results \& Evaluation}
-To evaluate the algorithm we used a number of different maven projects with different dependencies. We made sure to use some projects that were discussed above in the case studies section. We used a Log4j maven sample project. 
+\section{Results \& Graphs}
+%% One page to start
 
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{image.png}
-    \caption{Dependency Tree Results With Risk Levels Colour Coded} 
+    \caption{Dependency tree results with risk levels colour coded} 
+    \label{fig:tree}
 \end{figure}
 
-Figure 1 shows a final dependency tree with colour-coded risk evaluations of each of the dependencies. This figure was based on a user configuration of two vulnerabilities being acceptable and 70 being the minimum number of commits per month as acceptable. 
+Figure \ref{fig:tree} shows a final dependency tree with colour-coded risk evaluations of each of the dependencies. This figure was based on a user configuration of two vulnerabilities being acceptable and 70 being the minimum number of commits per month as acceptable. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{JUnit4-commits.png}
+    \caption{Commits Per Month for JUnit4: Actual vs Predicted} 
+    \label{fig:commits}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Log4j-Vulns.png}
+    \caption{Vulnerabilities Per Month for Log4j: Actual vs Predicted} 
+    \label{fig:vulns}
+\end{figure}
+
+\subsection{Research Questions}
+In this section we will discuss the research questions that we outlined above and attempted to answer. 
+
+\section{Evaluation}
+%% One page
+
+To evaluate the algorithm we used a number of different maven projects with different dependencies. We made sure to use some projects that were discussed above in the case studies section. We used a Log4j maven sample project. 
 
 We found that the project activity predictions generally performed a lot better than the vulnerability CVE data - presumably due to a lack of data in the NVD databases (which can in some cases mean no vulnerabilities - a good thing). A lot of the dependencies were also grouped in the same projects on GitHub which meant that there was only the need to calculate the prediction for these once. An issue we ran into was that there was no way of automatically using an API to find the GitHub projects of the dependencies - this meant we had to manually go through each of the dependency trees and find the project URLs on GitHub which does not bode well for scaling the project up for larger Maven projects. 
 
-For the evaluation of the predictions in this project, we used the commonly used metrics: Mean absolute percentage error (MAPE), mean absolute error (MAE), and root mean squared error (RMSE). 
+\[ MAPE = (1 / sample size) * /[( |actual - forecast| ) / |actual| /] * 100 \]
 
-% Insert a table of average results for each of the prediction types
+\[ MAE = (1/n) \sum{i=n} |actual – forecast|  \]
+
+\[ RMSE = \sqrt/[ (\sum (forecast – predicted) ^ 2) / sample size /]  \]
+
+For the evaluation of the predictions in this project, we used the commonly used metrics: Mean absolute percentage error (MAPE), mean absolute error (MAE), and root mean squared error (RMSE). The evaluation we obtained can be seen in Table \ref{evaluations}.
+
+\begin{table}
+ \caption{Evaluation of Predictions}
+\label{evaluations}
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+    \textbf{Prediction} & \textbf{MAPE} & \textbf{MAE} & \textbf{RMSE} \\ \hline
+    Commits per month & 0 & 0 & 0 \\ \hline
+    Time to Close Issues & 0 & 0 & 0  \\ \hline
+    Vulnerabilities per month & 0 & 0 & 0 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
 
 \section{Conclusions \& Further Work}
+% This should be one page long I reckon. 
+
 For the purpose of this paper, we focused on examining Maven dependency trees which are primarily used for Java projects. Further work could be done to examine other package manager dependency trees such as \textit{PyPI} for Python, \textit{NPM} for JavaScript, and \textit{Conan} for C. 
+
+Another avenue of future work would be to create an automatic method of gathering GitHub URLs for each of the dependencies as the lack of such system meant we were limited in the amount of testing that we could do. 
 
 \printbibliography
 
