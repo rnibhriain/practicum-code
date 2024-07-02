@@ -79,9 +79,9 @@ riskScores = dict()
 def findDependencies ():
 
     # this command gets the dependencies from a maven project
-    subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell = True )
+    # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell = True )
 
-    f = open( "Data/dependencies.txt", "r" )
+    f = open( "Data/dependencies4.txt", "r" )
 
     # add central node for the project
     G.add_node( "PROJECT", color = "black",  shape = 'square' )
@@ -451,11 +451,16 @@ def projectPrediction ( df, repo, type ):
              } )
     
     fig.update_traces( line = dict( width = 3 ) )
+
+    fig.update_xaxes( showgrid = True, gridwidth = 1, gridcolor = 'black' )
+    fig.update_yaxes( showgrid = True, gridwidth = 1, gridcolor = 'black' )
     
     fig.update_layout(
-        plot_bgcolor='black',
-        paper_bgcolor='black',
-        font_color='white',
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+
+        font_color='black',
+
         title = f'{type} Over Time for : {repo}'
     )
     
@@ -681,16 +686,19 @@ def vulnerabilityPrediction ( df, dependency ):
 
     # Graph predicted vs actual values
     fig = px.line( data_frame= df, x = 'Dates', y = [ 'Actual', 'Prediction' ],  color_discrete_map={
-                 "Actual": "#0AFBFF",
-                "Prediction": "#FBFF00"
+                 "Actual": "#009EFE",
+                "Prediction": "#FE8A00"
              } )
     
     fig.update_traces( line = dict( width = 3 ) )
+
+    fig.update_xaxes( showgrid = True, gridwidth = 1, gridcolor = 'black' )
+    fig.update_yaxes( showgrid = True, gridwidth = 1, gridcolor = 'black' )
     
     fig.update_layout(
-        plot_bgcolor='black',
-        paper_bgcolor='black',
-        font_color='white',
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        font_color='black',
         title = f'Vulnerabilities Over Time for : {dependency}'
     )
     

@@ -1,16 +1,18 @@
-\documentclass[10pt, compsoc, conference]{IEEEtran}
+\documentclass[conference]{IEEEtran}
 
 \usepackage{etoolbox}
 \usepackage{graphicx}
-\usepackage[style=numeric,sorting=none]{biblatex}
+\usepackage[square,numbers]{natbib}
+\bibliographystyle{ieeetr}
+\usepackage{url}
 
 % remove \centering from \section
 \patchcmd{\section}{\centering}{}{}{}
 
-\addbibresource{references.bib}
-
 \begin{document}
-\title{ARIMA Analysis of Risk in \\Open-Source Project Dependencies}
+\title{ARIMA Analysis of Risk in \\Open-Source Project Dependencies\\
+{\footnotesize Technical Document - INSERT DATE}
+}
 
 \author{\IEEEauthorblockN{Róisín Ní Bhriain}
 \IEEEauthorblockA{Student Number: 23269640}
@@ -20,7 +22,7 @@
 
 \maketitle
 
-\vspace*{-1.5234cm}
+\vspace*{-1.4cm}
 
 \thispagestyle{plain}
 \pagestyle{plain}
@@ -28,6 +30,7 @@
 \begin{description}
     \item[]
     \begin{center}
+    \centering
         %\item[\textbf{Technical Manual}] 
         \end{center}
     \item[]
@@ -144,7 +147,7 @@ In terms of calculating risk, we implemented some configuration options for a us
 These are the calculations we used for the risk scores. There is the option to decide project activity based on issues fix time, commits per month or both. The user supplies the configuration options of \textit{numDaysToFixIssues}, \textit{numCommits}, and \textit{vulCountsPerMonth}. They set the acceptable levels of risk for their project. The idea is that they are then assigned a risk score: where not enough is < 0, 0-2.5 is low risk, 2.5-5 is medium risk, 5-7.5 is high risk and anything above 7.5 is severe risk. the overall score gave the user a score from 0 which was displayed on the graph using the key from Figure \ref{fig:key}. We decided to leave the risk up to the user to decide as some organisations/developers would have different ideas of what is an acceptable number of commits/time to close issues/vulnerabilities per month. 
 
 \section{Results \& Graphs}
-%% One page to start
+In this section, we will discuss the results we obtained with our tool as well as some examples of the resulting graphs. We will focus on one particular Log4j sample project \cite{noauthor_logging-log4j-sampleslog4j-server_nodate} that we tested although we tested a number of different types of projects in addition to this.
 
 \begin{figure}
     \centering
@@ -153,26 +156,32 @@ These are the calculations we used for the risk scores. There is the option to d
     \label{fig:tree}
 \end{figure}
 
-Figure \ref{fig:tree} shows a final dependency tree with colour-coded risk evaluations of each of the dependencies. This figure was based on a user configuration of two vulnerabilities being acceptable and 70 being the minimum number of commits per month as acceptable. 
+Figure \ref{fig:tree} shows a final dependency tree with colour-coded risk evaluations of each of the dependencies. This figure was based on a user configuration of two vulnerabilities being acceptable and 70 being the minimum number of commits per month as acceptable. It is clear that there a number of lower level dependencies which are risky which the user may not be expecting. 
 
 \begin{figure}
     \centering
-    \includegraphics[width=1\linewidth]{JUnit4-commits.png}
+    \includegraphics[width=1\linewidth]{JUnit4commits.png}
     \caption{Commits Per Month for JUnit4: Actual vs Predicted} 
     \label{fig:commits}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[width=1\linewidth]{Log4j-Vulns.png}
+    \includegraphics[width=1\linewidth]{Log4jVuls.png}
     \caption{Vulnerabilities Per Month for Log4j: Actual vs Predicted} 
     \label{fig:vulns}
 \end{figure}
 
+Figure \ref{fig:tree} shows the vulnerabilities for Log4j over time and it is clear to see where the Log4j vulnerabilities were released in 2021 and these are predicted reasonably well in the subsequent months. 
+
 \subsection{Research Questions}
 In this section we will discuss the research questions that we outlined above and attempted to answer. 
 
-\section{Evaluation}
+Our first research question was whether we could combine features from the risk prediction methods to provide developers with a more well rounded risk measurement. We found that the combination of risk prediction methods was very helpful in identifying risky modules in dependency trees. Many of the dependencies that we investigated did not have any vulnerabilities reported in the NDV which is a desirable trait in any dependency. They were also, however, no longer under development which means if a vulnerability was discovered in a non-surviving project that it was not likely to be fixed. This may not be an issue for large organisations who incorporate open-source software and edit it to their liking but smaller organisations that don't have the resources to rework open-source software may wish to incorporate software that is still actively underdevelopment.
+
+The second research question we had was whether the creation of a visual predicted risk dependency graph would feasible. We used some smaller projects to test ours but due to the interactive functionality of the graph it would be feasible to create a similar graph for a larger dependency graph such as one used in industry. The issue that the project may run into in this case is that the linking from dependencies to URLs for GitHub projects that we used was investigated manually by the authors so it may become an issue with larger dependency lists as the list of kinnks would be required to be more extensive. This could be avoided if there was an automatic system of gathering links for GitHub projects as we explore further in the future work section. 
+
+\section{Performance Evaluation}
 %% One page
 
 To evaluate the algorithm we used a number of different maven projects with different dependencies. We made sure to use some projects that were discussed above in the case studies section. We used a Log4j maven sample project. 
@@ -208,7 +217,7 @@ For the purpose of this paper, we focused on examining Maven dependency trees wh
 
 Another avenue of future work would be to create an automatic method of gathering GitHub URLs for each of the dependencies as the lack of such system meant we were limited in the amount of testing that we could do. 
 
-\printbibliography
+\bibliography{references}
 
 \appendices
 \section{Graphs}
