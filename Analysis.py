@@ -9,7 +9,6 @@ from scipy.stats import skew
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.graphics.tsaplots import *
 from statsmodels.tsa.stattools import adfuller
-import matplotlib.pyplot as plt
 import networkx as nx
 import subprocess
 from pyvis.network import Network
@@ -52,14 +51,14 @@ def configuration ():
                             data[ 'token' ],
                              data[ 'nvd_key' ] )
     
-    if int( data[ 'num_commits' ] ) == 0:
-        print( "Error: num_commits cannot be 0" )
+    if int( data[ 'num_commits' ] ) <= 0:
+        print( "Error: num_commits cannot be 0 or less" )
         quit()
-    if int( data[ 'num_days_to_fix' ] ) == 0:
-        print( "Error: num_days_to_fix cannot be 0" )
+    if int( data[ 'num_days_to_fix' ] ) <= 0:
+        print( "Error: num_days_to_fix cannot be 0 or less" )
         quit()
-    if int( data[ 'num_vuls' ] ) == 0:
-        print( "Error: num_vuls cannot be 0" )
+    if int( data[ 'num_vuls' ] ) <= 0:
+        print( "Error: num_vuls cannot be 0 or less" )
         quit()
 
     f.close()

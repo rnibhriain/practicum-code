@@ -5,13 +5,15 @@
 \usepackage[square,numbers]{natbib}
 \bibliographystyle{ieeetr}
 \usepackage{url}
+\usepackage{float}
+\usepackage[listings,skins]{tcolorbox}
 
 % remove \centering from \section
 \patchcmd{\section}{\centering}{}{}{}
 
 \begin{document}
-\title{ARIMA Analysis of Risk in \\Open-Source Project Dependencies\\
-{\footnotesize Technical Document - INSERT DATE}
+\title{ARIMA Prediction of Risk in \\Open-Source Project Dependencies\\
+{\footnotesize Technical Document - INSERT DATE FINISHED}
 }
 
 \author{\IEEEauthorblockN{Róisín Ní Bhriain}
@@ -97,7 +99,7 @@ We used the NVD API for the vulnerability data risk prediction and we decided no
 
 The list of sources of data and the purpose of their use for this project can be seen in Table \ref{sourcelist}. We give the source of our data, the purpose of the data, and the type of data that was used. 
 
-\begin{table}
+\begin{table}[H]
  \caption{List of Sources Used}
 \label{sourcelist}
 \begin{center}
@@ -116,7 +118,7 @@ The dependency graphing we did worked by being placed in a maven project and the
 
 We used a network graph with each of the dependencies displayed as nodes on the graph with their risk scores assigned as colours. The project itself is displayed as a black square node. We have a key defining the risk levels of each of the nodes for helpful decoding of the graphs as displayed in Figure \ref{fig:key}. The edges represent the dependency links between nodes and the depth of each of the nodes from the project itself represents how dependencies can rely on other dependencies. The graph can show users how they are relying on dependencies that they did not directly add to their project and how risk can be involved in importing different dependencies. 
 
-\begin{figure}
+\begin{figure}[H]
     \centering
     \includegraphics[scale=0.5]{Key.png}
     \caption{The key for the risk dependency graph.}
@@ -149,23 +151,25 @@ These are the calculations we used for the risk scores. There is the option to d
 \section{Results \& Graphs}
 In this section, we will discuss the results we obtained with our tool as well as some examples of the resulting graphs. We will focus on one particular Log4j sample project \cite{noauthor_logging-log4j-sampleslog4j-server_nodate} that we tested although we tested a number of different types of projects in addition to this.
 
-\begin{figure}
+\begin{figure}[H]
     \centering
-    \includegraphics[width=1\linewidth]{image.png}
+    \includegraphics[width=1\linewidth]{dependency.png}
     \caption{Dependency tree results with risk levels colour coded} 
     \label{fig:tree}
 \end{figure}
 
 Figure \ref{fig:tree} shows a final dependency tree with colour-coded risk evaluations of each of the dependencies. This figure was based on a user configuration of two vulnerabilities being acceptable and 70 being the minimum number of commits per month as acceptable. It is clear that there a number of lower level dependencies which are risky which the user may not be expecting. 
 
-\begin{figure}
+\begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{JUnit4commits.png}
     \caption{Commits Per Month for JUnit4: Actual vs Predicted} 
     \label{fig:commits}
 \end{figure}
 
-\begin{figure}
+Figure \ref{fig:commits} shows the prediction vs actual values for the JUnit4 package. It is clear to see that from this graph that the project activity in terms of commits was at its highest from around 2012 to 2017. 
+
+\begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{Log4jVuls.png}
     \caption{Vulnerabilities Per Month for Log4j: Actual vs Predicted} 
@@ -182,21 +186,20 @@ Our first research question was whether we could combine features from the risk 
 The second research question we had was whether the creation of a visual predicted risk dependency graph would feasible. We used some smaller projects to test ours but due to the interactive functionality of the graph it would be feasible to create a similar graph for a larger dependency graph such as one used in industry. The issue that the project may run into in this case is that the linking from dependencies to URLs for GitHub projects that we used was investigated manually by the authors so it may become an issue with larger dependency lists as the list of kinnks would be required to be more extensive. This could be avoided if there was an automatic system of gathering links for GitHub projects as we explore further in the future work section. 
 
 \section{Performance Evaluation}
-%% One page
 
 To evaluate the algorithm we used a number of different maven projects with different dependencies. We made sure to use some projects that were discussed above in the case studies section. We used a Log4j maven sample project. 
 
 We found that the project activity predictions generally performed a lot better than the vulnerability CVE data - presumably due to a lack of data in the NVD databases (which can in some cases mean no vulnerabilities - a good thing). A lot of the dependencies were also grouped in the same projects on GitHub which meant that there was only the need to calculate the prediction for these once. An issue we ran into was that there was no way of automatically using an API to find the GitHub projects of the dependencies - this meant we had to manually go through each of the dependency trees and find the project URLs on GitHub which does not bode well for scaling the project up for larger Maven projects. 
 
-\[ MAPE = (1 / sample size) * /[( |actual - forecast| ) / |actual| /] * 100 \]
+\[ MAPE = (1 / sample size) * ( ( |actual - forecast| ) / |actual| ) * 100 \]
 
 \[ MAE = (1/n) \sum{i=n} |actual – forecast|  \]
 
-\[ RMSE = \sqrt/[ (\sum (forecast – predicted) ^ 2) / sample size /]  \]
+\[ RMSE = \sqrt( (\sum (forecast – predicted) ^ 2) / sample size )  \]
 
-For the evaluation of the predictions in this project, we used the commonly used metrics: Mean absolute percentage error (MAPE), mean absolute error (MAE), and root mean squared error (RMSE). The evaluation we obtained can be seen in Table \ref{evaluations}.
+For the evaluation of the predictions in this project, we used the commonly used metrics: Mean absolute percentage error (MAPE), mean absolute error (MAE), and root mean squared error (RMSE). The evaluation we obtained can be seen in Table \ref{evaluations}. 
 
-\begin{table}
+\begin{table}[H]
  \caption{Evaluation of Predictions}
 \label{evaluations}
 \begin{center}
@@ -210,17 +213,49 @@ For the evaluation of the predictions in this project, we used the commonly used
 \end{center}
 \end{table}
 
+\section{Threats to Validity}
+In this section we identify some possible threats to the validity of the results we obtained and how they were addressed. 
+
+\subsection{Dataset}
+The dataset that we used was quite limited. We gathered a small number of maven projects to test the initial design. This was to ensure that we could run and test the code quickly without having to wait hours for all of the graphs to generate. To combat this lack of data we decided to analyse a sample Log4j maven project as this had known vulnerabilities and thus had a spike in vulnerabilities and project activity. 
+
+\subsection{AutoARIMA}
+The use of the AutoARIMA predictions means we are not getting the most accurate prediction possible for every dataset but as this project requires a lot of API usage and data processing for each of the dependencies (which can be a large number) we decided that it made more sense to have an automatic system rather than manually analysing each of the datasets. The system we are using is assuming that there is no seasonality in the datasets as this was what was reported in the literature we reviewed on the use of Time Series to predict values in both project activity and vulnerability reporting. 
+
 \section{Conclusions \& Further Work}
-% This should be one page long I reckon. 
+The growing reliance on open-source software has introduced a number of challenges regarding the security and integrity of software supply chains. Our investigation concludes that the combination of the two measures of risk, both project activity and vulnerabilities over time give a better overview of the risk in using a project. The 
 
-For the purpose of this paper, we focused on examining Maven dependency trees which are primarily used for Java projects. Further work could be done to examine other package manager dependency trees such as \textit{PyPI} for Python, \textit{NPM} for JavaScript, and \textit{Conan} for C. 
+For the purpose of this paper, we focused on examining Maven dependency trees which are primarily used for Java projects. Further work could be done to examine other package manager dependency trees such as \textit{PyPI} for Python, \textit{NPM} for JavaScript, and \textit{Conan} for C. This may give a different perspective as different languages may be more prone to vulnerabilities or have projects which are less likely to survive. 
 
-Another avenue of future work would be to create an automatic method of gathering GitHub URLs for each of the dependencies as the lack of such system meant we were limited in the amount of testing that we could do. 
+Another avenue of future work would be to create an automatic method of gathering GitHub URLs for each of the dependencies as the lack of such system meant we were limited in the amount of testing that we could do. This was a technical challenge that we had as we had to gather the URLs manually. An automatic tool like this would be useful in other contexts as well such as finding other details about project activity or latest versions. 
+
+In general the performance of our tool was fairly accurate in terms of the prediction of both vulnerabilities per month and project activity. We kept the configuration options as open as possible so users could potentially change the level of risk that they deem appropriate. It also leaves the door open to investigate other project activity prediction such as number of remaining contributors which was an important factor in the literature for the survival of an open-source project. The vulnerability aspect of the project can also be tweaked so that users can choose the severity levels that are risky in their operations. The idea of this project is to give users an idea of risky modules in their dependency trees so that they can better select less risky modules when comparing similar open-source software. 
 
 \bibliography{references}
 
 \appendices
 \section{Graphs}
+
+\section{Configuration Options JSON}
+
+\begin{lstlisting}[frame=single]
+{
+  "num_vuls": "2",
+  "num_days_to_fix": "46",
+  "num_commits": "70",
+  "issues_or_commits": "commits",
+  "token": "",
+  "nvd_key": ""
+}
+\end{lstlisting}
+
+\section{Log4j Dependency Tree}
+
+\begin{lstlisting}[frame=single]
+
+
+\end{lstlisting}
+
 
 \ifCLASSOPTIONcaptionsoff
   \newpage
