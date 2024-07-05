@@ -444,7 +444,7 @@ def projectPrediction ( df, repo, type ):
     df = pd.concat( [ df, df2 ] )
 
     # Graph predicted vs actual values
-    fig = px.line( data_frame= df, x = 'Dates', y = [ 'Actual', 'Prediction' ],  color_discrete_map={
+    fig = px.line( data_frame = df, x = 'Dates', y = [ 'Actual', 'Prediction' ],  color_discrete_map={
                  "Actual": "#42DB04",
                 "Prediction": "#F66491"
              } )
@@ -762,10 +762,10 @@ def vuls_over_time ():
             vulCounts[ x ] = 1
             i += 1
 
-    df = pd.DataFrame({
+    df = pd.DataFrame( {
         "Dates": vulCounts.keys(),
         "Actual": vulCounts.values()
-    })
+    } )
 
     if len( df ) == 0:
         return df
