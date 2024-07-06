@@ -4,7 +4,7 @@ This repository contains the work that I did for my practicum project during my 
 
 ## Code - Analysis.py 💻
 
-The idea of the analysis is to analyse and pinpoint the dependencies that are exposing a project to risk. We extract the dependencies from a dependency tree provided by a Maven project. The analysis was split up into the two different objects of analysis that are commonly used to examine risk prediction in open-source projects. Both project activity and the number of vulnerabilities per month are indicators of how risky a project is according to the literature we reviewed. The aim we have is to combine these to give a more comprehensive view of the risk in using a particular open-source project.
+The idea of the analysis is to analyse and pinpoint the dependencies that are exposing a project to risk. We extract the dependencies from a dependency tree provided by a Maven project. The analysis was split up into the two different objects of analysis that are commonly used to examine risk prediction in open-source projects. Both project activity and the number of vulnerabilities per month are indicators of how risky a project is according to the literature we reviewed. The aim we have is to combine these to give a more comprehensive view of the risk in using a particular open-source project. The idea behind this is that a dependency with some vulnerabilities may be less risky if it is well maintained and a dependency that is not maintained may be less risky if there are never any vulnerabilities associated with it. 
 
 ### Setup
 
@@ -12,15 +12,15 @@ The setup involves populating the dependency links using the input in the text f
 
 ### Finding and Graphing the Dependencies (of a Maven Project)
 
-The first part of the analysis involves finding the dependencies of a project using the output from the maven dependency tree. 
+The first part of the analysis involves finding the dependencies of a project using the output from the maven dependency tree. We assign each dependency a node in the graph and add edges according to its depth in the dependency tree. The node is coloured based on its analysed and predicted risk (according to the levels set by the user). 
 
 ### Risk Prediction Using Project Activity
 
-This part of the analysis aims to predict how well the project is maintained and thus how quick the response time will be to any issues or vulnerabilities reported by users or developers.
+This part of the analysis aims to predict how well the project is maintained and thus how quick the response time will be to any issues or vulnerabilities reported by users or developers. We measure both the time-to-fix issues and the number of commits per month. The user has the option of exploring risk through commits/issues or both. We use AutoARIMA for this anr return the final predicted value. 
 
 ### Risk Prediction Using Vulnerability Database Data
 
-This part of the analysis aims to predict how many vulnerabilities will be reported monthly for the project. This will give an indicator as to how risk-prone the project is.
+This part of the analysis aims to predict how many vulnerabilities will be reported monthly for the project. This will give an indicator as to how risk-prone the project is. We extract keywords from dependencies and use these to find associated CVEs using the NVD API. We then count the monthly vulnerabilities and aim to predict these. 
 
 ## Graphs Generated 📈
 
