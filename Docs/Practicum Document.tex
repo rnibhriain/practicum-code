@@ -213,13 +213,13 @@ These are the most commonly used evaluation metrics when evaluating Time Series 
 
 The evaluation we obtained for the two figures above fig \ref{fig:commits} and fig \ref{fig:vulns} can be seen in Table \ref{evaluations}. The figures show that the evaluation metrics of the vulnerability prediction are quite a bit better than those of the commits per month prediction. This may be due to the high number of commits vs the the low number of vulnerabilities. The MAPE value for the commits per month is quite high but this is likely due to a high number of commits with very large fluctuations month to month. This is particularly the case when actual values are close to zero and as we can see in Figure \ref{fig:commits} there are a number of months both at the beginning of the timeline and towards the end of the timeline where the commit count per month is quite low and likely quite close to zero. Considering the Log4j vulnerability caused a large spike in vulnerabilities being released for this package, the vulnerability prediction performs quite well and seems to take these spikes into account when predicting the next values. 
 
-\section{Threats to Validity}
+\subsection{Threats to Validity}
 In this section we identify some possible threats to the validity of the results we obtained and how they were addressed. 
 
-\subsection{Dataset}
+\subsubsection{Dataset}
 The dataset that we used was quite limited. We gathered a small number of maven projects to test the initial design. This was to ensure that we could run and test the code quickly without having to wait hours for all of the graphs to generate. The code takes a significant amount of time to run for larger projects - although the data gathering takes up the largest proportion of time. To combat the lack of datasets available and the manual work gathering GitHub URLs we decided to analyse a sample Log4j maven project as this had known vulnerabilities and thus had a spike in vulnerabilities and project activity. Another dataset issue we had was that there was not a lot of vulnerability data per month in the same way that there was for the project activity. This as we discussed above, means that the vulnerability predictions were not always the most accurate that they could have been. 
 
-\subsection{AutoARIMA}
+\subsubsection{AutoARIMA}
 We investigated the use of manual ARIMA prediction when starting development on this project but this meant we had to explore pacf and acf plots for each of the predictions which was unfeasible for some of the larger dependency trees. We found it was easy enough to get the differencing parameter calculated but very difficult to calculate the others, The use of the AutoARIMA predictions means we are not getting the most accurate prediction possible for every dataset but as this project requires a lot of API usage and data processing for each of the dependencies (which can be a large number) we decided that it made more sense to have an automatic system rather than manually analysing each of the datasets. The system we are using is assuming that there is no seasonality in the datasets as this was what was reported in the literature we reviewed on the use of Time Series to predict values in both project activity and vulnerability reporting. 
 
 \section{Conclusions \& Further Work}
