@@ -118,6 +118,7 @@ We used a network graph with each of the dependencies displayed as nodes on the 
 \end{center}
 \end{figure}
 
+
 \subsection{Project Activity Prediction}
 For the project activity prediction, we used data from the GitHub API. The user has the option to specify whether they wish to investigate the issue or commit data or both. We used all of the data available instead of specifying a specific time range as all of the projects had different time ranges available to use. We gathered all of the commits/closed issues available on the GitHub API and processed this to ensure we had all of the monthly data. In the case of commits this was simply a count of commits per month and we added a 0 for each of the months with no data. For the issues we calculated the time-to-close in days for each and got a monthly average for this, adding a 0 for each of the months that had no data. 
 
@@ -127,6 +128,7 @@ For the prediction itself we used the date as an index and after some manual cal
 For the vulnerability CVE data prediction we used vulnerability data from the NVD API. We first split up all of the dependencies into keywords to ensure that we got all of the relevant CVEs for that dependency. For each of the keywords we make a request to the API and ensure that each of the returned CVEs are not in the already gathered list of CVEs. We then gather the monthly data similar to commits above we count the number of commits per month and fill in a 0 where there are none. 
 
 The prediction method used was a very similar method as for the project activity method. As there is not a lot of data for the vulnerability prediction section we can assume if the values are constant or there is no data then we can safely assume that there will be no vulnerabilities that month and return a 0. We used the \textit{Auto ARIMA} library in this case to make the predictions as well and we ensured that the data was sorted by date. 
+
 
 \subsection{Risk Calculations}
 In terms of calculating risk, we implemented some configuration options for a user to decide how many commits, days-to-close issues, and vulnerabilities per month are acceptable. 
@@ -143,15 +145,15 @@ In terms of calculating risk, we implemented some configuration options for a us
 
 These are the calculations we used for the risk scores. There is the option to decide project activity based on issues fix time, commits per month or both. The user supplies the configuration options of \textit{numDaysToFixIssues}, \textit{numCommits}, and \textit{vulCountsPerMonth}. They set the acceptable levels of risk for their project. The idea is that they are then assigned a risk score: where not enough data is any number less than 0, 0-2.5 is low risk, 2.5-5 is medium risk, 5-7.5 is high risk and anything above 7.5 is severe risk. The overall score is then displayed on the graph colour coded using the key from Figure \ref{fig:key}. We decided to leave the risk up to the user to decide as some organisations/developers would have different ideas of what is an acceptable number of commits/time to close issues/vulnerabilities per month. 
 
-\section{Results \& Graphs}
-In this section, we will discuss the results we obtained with our tool as well as some examples of the resulting graphs. We will focus on one particular Log4j sample project \cite{noauthor_logging-log4j-sampleslog4j-server_nodate} that we tested although we tested a number of different types of projects in addition to this to get establish a baseline for the functionality of the graphing. We first look at the risk dependency visual that we created and then we explore two examples of the predictions we made - one for project activity and one for vulnerability predictions. We chose two different dependency graphs for the prediction examples to give an idea of how accurate the predictions can be for both types of prediction. 
-
-\begin{figure}[H]
+\begin{figure*}
     \centering
-    \includegraphics[width=1\linewidth]{dependency.png}
+    \includegraphics[scale=0.5]{dependency.png}
     \caption{Dependency tree results with risk levels colour coded.} 
     \label{fig:tree}
-\end{figure}
+\end{figure*}
+\section{Results \& Graphs}
+
+In this section, we will discuss the results we obtained with our tool as well as some examples of the resulting graphs. We will focus on one particular Log4j sample project \cite{noauthor_logging-log4j-sampleslog4j-server_nodate} that we tested although we tested a number of different types of projects in addition to this to get establish a baseline for the functionality of the graphing. We first look at the risk dependency visual that we created and then we explore two examples of the predictions we made - one for project activity and one for vulnerability predictions. We chose two different dependency graphs for the prediction examples to give an idea of how accurate the predictions can be for both types of prediction. 
 
 Figure \ref{fig:tree} shows a final dependency tree with colour-coded risk evaluations of each of the dependencies. This figure was based on a user configuration of two vulnerabilities being acceptable and 70 being the minimum number of commits per month as acceptable. It is clear that there a number of lower level dependencies which are risky which the user may not be expecting. The graph is interactive and each specific dependency can be zoomed in on so if the graphs are larger or more dense the user can pick out specific risky nodes and choose to investigate their dependencies further or even compare different dependencies. 
 
@@ -173,9 +175,16 @@ Figure \ref{fig:commits} shows the commits per month prediction vs actual values
 
 Figure \ref{fig:vulns} shows the vulnerabilities for Log4j over time and it is clear to see where the Log4j vulnerabilities were released in 2021 and these are predicted reasonably well in the subsequent months. 
 
-The tool displays graphs for every one of the predicted sets of data that we make. If there is not enough data for the prediction to be made then there is no corresponding graph. The idea is that the user can then investigate how accurate the predictions are for each of the graphs. We found that for graphs with less data over time that the predictions did not perform well and that occasionally there were constant lines being returned rather than actual predictions which could not be returned as a value for the risk dependency graph. 
+The tool displays graphs for every one of the predicted sets of data that we make. If there is not enough data for the prediction to be made then there is no corresponding graph. The idea is that the user can then investigate how accurate the predictions are for each of the graphs. We found that for graphs with less data over time that the predictions did not perform well and that occasionally there were constant lines being returned rather than actual predictions which could not be returned as a value for the risk dependency graph. An example of this can be seen in Figure \ref{fig:const}. The predicted values for the vulnerability data for the jackson databind dependency. The predicted values are a constant value of just below 1 which is obviously not accurate given the actual values. 
 
-\subsection{Research Questions}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Const.png}
+    \caption{Vulnerabilities Per Month for jackson databind: Actual vs Predicted.} 
+    \label{fig:const}
+\end{figure}
+
+\subsection{Discussion}
 In this section we will discuss the research questions that we outlined above and will attempt to answer. 
 
 Our first research question was whether we could combine features from the risk prediction methods to provide developers with a more well rounded risk measurement. We found that the combination of risk prediction methods was very helpful in identifying risky modules in dependency trees. Many of the dependencies that we investigated did not have any vulnerabilities reported in the NDV which is a desirable trait in any dependency. They were also, however, no longer under development which means if a vulnerability was discovered in a non-surviving project that it was not likely to be fixed. This may not be an issue for large organisations who incorporate open-source software and edit it to their liking but smaller organisations that don't have the resources to rework open-source software may wish to incorporate software that is still actively underdevelopment.
