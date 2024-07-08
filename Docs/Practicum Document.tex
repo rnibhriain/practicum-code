@@ -143,7 +143,23 @@ In terms of calculating risk, we implemented some configuration options for a us
   overallScore = ( projectActivityScore +\\ vulnerabilityScore) / 2 
 \end{multline*}
 
-These are the calculations we used for the risk scores. There is the option to decide project activity based on issues fix time, commits per month or both. The user supplies the configuration options of \textit{numDaysToFixIssues}, \textit{numCommits}, and \textit{vulCountsPerMonth}. They set the acceptable levels of risk for their project. The idea is that they are then assigned a risk score: where not enough data is any number less than 0, 0-2.5 is low risk, 2.5-5 is medium risk, 5-7.5 is high risk and anything above 7.5 is severe risk. The overall score is then displayed on the graph colour coded using the key from Figure \ref{fig:key}. We decided to leave the risk up to the user to decide as some organisations/developers would have different ideas of what is an acceptable number of commits/time to close issues/vulnerabilities per month. 
+\begin{table}[H]
+ \caption{Risk Score Levels}
+\label{risklevels}
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+    \textbf{Score} & \textbf{Risk Level} \\ \hline
+    \textless  0 & Not Enough Data \\ \hline
+    0 - 2.5 & Low Risk \\ \hline
+    2.5-5 & Medium Risk \\ \hline
+    5-7.5 & High Risk \\ \hline
+    \textgreater 7.5  & Severe Risk \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+These are the calculations we used for the risk scores. There is the option to decide project activity based on issues fix time, commits per month or both. The user supplies the configuration options of \textit{numDaysToFixIssues}, \textit{numCommits}, and \textit{vulCountsPerMonth}. They set the acceptable levels of risk for their project. The idea is that they are then assigned a risk score: where not enough data is any number less than 0, 0-2.5 is low risk, 2.5-5 is medium risk, 5-7.5 is high risk and anything above 7.5 is severe risk. These can be seen in table \ref{risklevels}. The overall score is then displayed on the graph colour coded using the key from Figure \ref{fig:key}. We decided to leave the risk up to the user to decide as some organisations/developers would have different ideas of what is an acceptable number of commits/time to close issues/vulnerabilities per month. 
 
 \begin{figure*}
     \centering
