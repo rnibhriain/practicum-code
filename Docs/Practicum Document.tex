@@ -28,7 +28,7 @@
 \pagestyle{plain}
 
 \begin{abstract}
-Measuring risk is essential in ensuring the security, reliability and compliance in software systems. Open-source software is transparent and accessible to everyone but can be vulnerable to security risks and thus requires analysis to identify and mitigate against these risks. Developers and organisations need to understand the risks associated with their open-source supply chain to safeguard against any data breaches or other attacks. Making informed decisions on software adoption by comparing the risks in different components is a part of this. This paper explores the methods used in the prediction of risk when using open-source software. There are a number of methods used and the aim is to combine these to give a more comprehensive view of the risks of using a particular open-source project. We examine the literature to decide on an appropriate prediction algorithm for each measure of risk. We aim to develop a tool to investigate the risks in dependency trees. We provide a graph of the final results which can be used to aid in finding where the risk lies in the dependency trees. 
+Measuring risk is essential in ensuring the security, reliability and compliance in software systems. Open-source software is transparent and accessible to everyone but can be vulnerable to security risks and thus requires analysis to identify and mitigate against these risks. Developers and organisations need to understand the risks associated with their open-source supply chain to safeguard against any data breaches or other attacks. Making informed decisions on software adoption by comparing the risks in different components is a part of this. This paper explores the methods used in the prediction of risk when using open-source software. There are a number of methods used and the aim is to combine these to give a more comprehensive view of the risks of using a particular open-source project. We examine the literature to decide on an appropriate prediction algorithm for each measure of risk. We aim to develop a tool to investigate the risks in dependency trees. A dependency graph of the final results is provided which can be used to aid in finding where the risk lies in the dependency trees. 
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -48,9 +48,10 @@ The structure of this paper is as follows: we first explore the literature on th
 \\\\
 The research questions that we plan to focus on is as follows:\\
 
-\textit{RQ1:} Can we combine features extracted from the risk prediction methods to provide developers with a more effective risk measure that allows them to minimise risk when choosing between multiple candidate open-source components?\\
-
-\textit{RQ2:} Can we create a visual dependency tree for a project consisting of colour coded nodes based on the predicted risks?\\ 
+\begin{itemize}
+    \item \textit{RQ1:} Are there feature combinations that can be made from risk prediction methods that could provide developers with a more effective risk measure that allows them to minimise risk when choosing between multiple candidate open-source components?\\
+    \item \textit{RQ2:} Can visual dependency tree be created for a project consisting of colour coded nodes based on the predicted risks?\\
+\end{itemize}
 
 By answering the above questions we aim to provide some new insights on the area of risk prediction for Maven projects. 
 
@@ -58,13 +59,16 @@ By answering the above questions we aim to provide some new insights on the area
 In this section, we review relevant work in the prediction of risk in open-source software. We examine the machine learning models used as well as the different objects of analysis used in the predictions.  
 
 \subsection{Vulnerability Propagation}
-Only around 1.2\% of projects directly use vulnerable code in their dependencies \cite{a_m_mir_effect_2023}. However, they maintain that a small number of vulnerable projects such as \textit{jackson-databind} and \textit{netty-codec-http} can affect up to 375,607 packages in the Maven ecosystem. This means any CVEs can affect quite a large number of Maven projects. In \cite{c_liu_demystifying_2022} they create a dependency vulnerability graph of the entire NPM ecosystem. In investigating the JavaScript NPM ecosystem they propose an algorithm to resolve dependency trees as well as vulnerability propagation paths. They also find that vulnerabilities could effect up to 16.7\% of third-party libraries in their current versions. Some widely known CVEs exist at the moment in the current dependency trees of a significant number of packages. As packages grow larger and more dependencies are added the complexity of discovering vulnerable dependencies increases in complexity. The complexity can be optimised from exponential to polynomial level depending on the number of relationships through the use of a search algorithm based on lazy strategy \cite{w_hu_open_2019}. They also propose the use of optimal blocking analysis to complete vulnerability repair for a project with minimal blocking.
+Roughly 1.2\% of projects directly use vulnerable code in their dependencies \cite{a_m_mir_effect_2023}. However, they maintain that a small number of vulnerable packages such as \textit{jackson-databind} and \textit{netty-codec-http} can affect up to 375,607 packages in the Maven ecosystem. This means any CVEs can affect quite a large number of Maven projects. In \cite{c_liu_demystifying_2022} they create a dependency vulnerability graph of the entire NPM ecosystem. In investigating the JavaScript NPM ecosystem they propose an algorithm to resolve dependency trees as well as vulnerability propagation paths. They also find that vulnerabilities could effect up to 16.7\% of third-party libraries in their current versions. Some widely known CVEs exist at the moment in the current dependency trees of a significant number of packages. As packages grow larger and more dependencies are added the complexity of discovering vulnerable dependencies increases in complexity. The complexity can be optimised from exponential to polynomial level depending on the number of relationships through the use of a search algorithm based on lazy strategy \cite{w_hu_open_2019}. They also propose the use of optimal blocking analysis to complete vulnerability repair for a project with minimal blocking.
 
 \subsection{Project Metadata Analysis}
 One of the main indicators of an open-source projects' survival is the measurement of project activity. Predicting project activity in open-source software is a significant way of measuring the success and security of projects. In \cite{l_bao_large_2021} they examine specifically the contributors in open source projects and use several machine learning and deep learning techniques to predict their activity. They attempt to differentiate between newcomers who leave the project after a short time and those who stay for a long time. Some of the most important features are the number of followers, the programming language and the average number of commits per developer. A dataset from GitHub was used as well as a survey conducted among developers to see their opinions on factors that affect long-term contributors. Predicting the health of an open-source project is explored in \cite{xia_predicting_2022}. Data from over one thousand GitHub projects was used to predict multiple health indicators using machine learning and the error rate was reduced using hyperparameter optimisation. They predict things such as the number of contributors, the number of commits, and the number of pull requests and issues. These metrics are indicative of the project’s activity level. They also conducted a survey which indicated that these are real-world concerns for developers. The commit activity of individuals can also be forecasted as active developers play a significant role in the survival of open-source projects. Less than 50\% of abandoned projects find new contributors and so contributor retention is a major indicator of a project's health. A simple probabilistic model can be used to predict time until next contribution for specific contributors in a project \cite{decan_gap_2020}.
 
 \subsection{Vulnerability CVE Data Analysis}
 Time series forecasting is a popular method used when predicting vulnerabilities. In \cite{gencer_time_2021} the authors analyse the use of the ARIMA model to predict vulnerabilities. Data on vulnerabilities from the NVD was used in this study \cite{noauthor_vulnerability_nodate}. The National Vulnerability Database (NVD) is a database maintained by the National Institute for Technology which keeps updated details on known vulnerabilities. The authors aimed to predict the number of vulnerabilities for Android per month. They compared its performance with the long short-term memory model, artificial neural network and recurrent neural network deep learning techniques and found ARIMA gives better results. They found the LSTM to have comparable error rates with ARIMA and to have more successful results than the two deep learning techniques. Another paper discusses the use of ARIMA to predict vulnerabilities \cite{pokhrel_cybersecurity_2017}. They use a linear and a non-linear approach comparing ARIMA and Artificial Neural Networks ((ANN) and Support Vector Machines (SVM) again using the reported vulnerabilities on the NVD for three different Operating Systems. The results indicated that there were sharp fluctuations in the number of vulnerabilities, the non-linear approaches were a better predictor however, the ANN did not have enough data to perform well. The authors of \cite{roumani_time_2015} used two methods of time series analysis to predict vulnerabilities for web browsers: ARIMA and exponential smoothing. The trend, level and seasonality of the vulnerabilities were considered to help in prediction. They note that level was the only significant parameter. Datasets from the NVD were also used in this paper.
+
+\subsection{Research Gap}
+A gap in research can be found in the way that the papers identified above each discuss methods of predicting specific objects of analysis and thus do not get a measurement of the overall health of a dependency. A dependency with many vulnerabilities and a lot of project activity may be deemed less risky by users than a dependency with low project activity and some vulnerabilities. The use of vulnerability prediction models is also a gap in the research and it could certainly be useful when predicting risk in dependency trees. 
 
 \section{Case Studies}
 In this section, we will identify a number of case studies where a tool like this would have been valuable to see whether a project depended on a risky project. 
@@ -76,18 +80,18 @@ In November 2021 a vulnerability was discovered in the popular open-source loggi
 In April 2014 the Heartbleed vulnerability was discovered in the OpenSSL connection versions 1.0.1 and 1.0.1f. OpenSSl is a popular open-source cryptography library. The vulnerability comes from the established connection being kept 'alive; through \textit{Heartbeat} messages. Hackers could craft a similar message to the official \textit{Heartbeat} Message and thus receive private information back \cite{s_kyatam_heartbleed_2017}. It was estimated that 24-55\% of HTTPS servers in the Alexa Top 1 million were vulnerable and even 48 hours after the disclosure of the vulnerability still around 11\% remained vulnerable. This attack could reveal secure data such as private keys and only 10\% of affected servers changed their TLS certificates and of these 14\% did not replace their private keys thus gaining no protection \cite{durumeric_matter_2014}. A number of affected servers would not have known that they were affected so a tool such as the one we propose would have been useful in discovering that they were vulnerable to Heartbleed. 
 
 \section{Methodology}
-This paper explores the creation of a tool to predict risk in dependency trees. We aim to combine two of the objects of analysis to give a more well-rounded analysis vs focusing on one. In this section we initially describe the data we used and then the prediction methods as well as the calculations of risk that we used. For both of the types of prediction, we did not consider seasonality as papers we reviewed above did not find it to be a significant parameter. We focus on two methods of risk prediction here: 
+This paper explores the creation of a tool to predict risk in dependency trees. We aim to combine two of the commonly used objects of analysis as explored above to give a more well-rounded analysis vs focusing on one. In this section we initially describe the data we used and then the prediction methods as well as the calculations of risk that we used. For both of the types of prediction, we did not consider seasonality as papers we reviewed above did not find it to be a significant parameter. We focus on two methods of risk prediction here: 
 \begin{enumerate}
     \item Project Activity Prediction
     \item Vulnerability CVE Data Prediction
 \end{enumerate}
 
 \subsection{Data Gathering}
-The first set of test data we used for this project were gathered from various Maven projects available on GitHub. We gathered some small projects to test the initial graphing and prediction techniques. As one of the case studies we focused on was the Log4j vulnerability we made sure to test a sample project that incorporated the Log4j logging library. 
+The first set of test data used for this project were gathered from various Maven projects available on GitHub. We gathered some small projects to test the initial graphing and prediction techniques. As one of the case studies we focused on was the Log4j vulnerability we made sure to test a sample project that incorporated the Log4j logging library. 
 
-We used the GitHub API for the project activity risk prediction and we decided that time-to-close issues and commits per month were appropriate measures of risk for this project as they were identified as predictors of a project's health in the literature we studied. The project has the option to predict either the issue data, the commit data or both at the same time. To gather the GitHub URLs for each of the dependencies we had to manually search for them and add them to our file of libraries to corresponding URLs which was an unfortunate roadblock. 
+The GitHub API was used for the project activity risk prediction and time-to-close issues and commits per month were determined as appropriate measures of risk for this project as they were identified as predictors of a project's health in the literature we studied. The project has the option to predict either the issue data, the commit data or both at the same time. To gather the GitHub URLs for each of the dependencies we had to manually search for them and add them to our file of libraries to corresponding URLs which was an unfortunate roadblock. 
 
-We used the NVD API for the vulnerability data risk prediction and we decided not to discriminate between the different severity levels as there was not a large number of data for each of the dependencies. We gathered the number of vulnerabilities per month for each of these using this API. 
+The NVD API was used to gather data for the vulnerability risk prediction and did not to discriminate between the different severity levels as there was not a large number of data for each of the dependencies and it was unnecessary for the purpose of this research with the focus being a general overview of a project's risk. The number of vulnerabilities per month was gathered for each of these using this API. 
 
 The list of sources of data and the purpose of their use for this project can be seen in Table \ref{sourcelist}. We give the source of our data, the purpose of the data, and the type of data that was used. 
 
@@ -122,12 +126,12 @@ We used a network graph with each of the dependencies displayed as nodes on the 
 \subsection{Project Activity Prediction}
 For the project activity prediction, we used data from the GitHub API \cite{noauthor_github_nodate}. The user has the option to specify whether they wish to investigate the issue or commit data or both. We used all of the data available instead of specifying a specific time range as all of the projects had different time ranges available to use. We gathered all of the commits/closed issues available on the GitHub API and processed this to ensure we had all of the monthly data. In the case of commits this was simply a count of commits per month and we added a 0 for each of the months with no data. For the issues we calculated the time-to-close in days for each and got a monthly average for this, adding a 0 for each of the months that had no data. 
 
-For the prediction itself we used the date as an index and after some manual calculations of the \textit{d} parameter and differencing the data, we also examined the \textit{pacf} and \textit{acf} graphs and decided it was not feasible to implement this system of parameter selection at a large scale. We used the \textit{Auto ARIMA} library to make the predictions. The final value predicted for the current month was returned for each of the GitHub libraries. If the data is constant or there is no data a -1 was returned as there is not enough data to make a prediction. 
+For the prediction itself we used the date as an index and after calculating the \textit{d} parameter by differencing the data until the p-value of the adfuller test was below 0.05, we also examined the \textit{pacf} and \textit{acf} graphs and decided it was not feasible to implement this system of parameter selection at a large scale. We used the \textit{Auto ARIMA} library to make the predictions \cite{noauthor_pmdarima_nodate}. The final value predicted for the current month was returned for each of the GitHub libraries. If the data is constant or there is no data a -1 was returned as there is not enough data to make a prediction. 
 
 \subsection{Vulnerability CVE Data Prediction}
 For the vulnerability CVE data prediction we used vulnerability data from the NVD API \cite{noauthor_vulnerability_nodate}. The dependencies were then split into keywords to ensure that all of the relevant CVEs for that dependency were gathered. For each of the keywords we make a request to the API and ensure that each of the returned CVEs are not in the already gathered list of CVEs. The monthly data similar to commits above was gathered and we count the number of commits per month and fill in a 0 where there are none. 
 
-The prediction method used was a very similar method as for the project activity method. As there is not a lot of data for the vulnerability prediction section we can assume if the values are constant or there is no data then we can safely assume that there will be no vulnerabilities that month and return a 0. The \textit{Auto ARIMA} library was used in this case to make the predictions as well and we ensured that the data was sorted by date. 
+The prediction method used was a very similar method as for the project activity method. Some dependencies do not have many vulnerabilities per month or even per year. As there is not a lot of data for the vulnerability prediction section we can assume if the values are constant or there is no data then we can safely assume that there will be no vulnerabilities that month and return a 0. The \textit{Auto ARIMA} library was used in this case to make the predictions as well and we ensured that the data was sorted by date. 
 
 
 \subsection{Risk Calculations}
@@ -159,7 +163,7 @@ In order to calculate the risk, we then defined some configuration options for a
 \end{center}
 \end{table}
 
-These are the calculations we used for the risk scores. There is the option to decide project activity based on issues fix time, commits per month or both. The user supplies the configuration options of \textit{numDaysToFixIssues}, \textit{numCommits}, and \textit{vulCountsPerMonth}. They set the acceptable levels of risk for their project. The idea is that they are then assigned a risk score: where not enough data is any number less than 0, 0-2.5 is low risk, 2.5-5 is medium risk, 5-7.5 is high risk and anything above 7.5 is severe risk. These can be seen in table \ref{risklevels}. The overall score is then displayed on the graph colour coded using the key from Figure \ref{fig:key}. We decided to leave the risk up to the user to decide as some organisations/developers would have different ideas of what is an acceptable number of commits/time to close issues/vulnerabilities per month. 
+These are the calculations we used for the risk scores. The idea we had was to calculate a score as defined above for project activity and a score for vulnerabilities and divide them by 2. There is the option to decide project activity based on issues fix time, commits per month or both. The user supplies the configuration options of \textit{numDaysToFixIssues}, \textit{numCommits}, and \textit{vulCountsPerMonth}. They set the acceptable levels of risk for their project. The idea is that they are then assigned a risk score: where not enough data is any number less than 0, 0-2.5 is low risk, 2.5-5 is medium risk, 5-7.5 is high risk and anything above 7.5 is severe risk. These can be seen in table \ref{risklevels}. The overall score is then displayed on the graph colour coded using the key from Figure \ref{fig:key}. We decided to leave the risk up to the user to decide as some organisations/developers would have different ideas of what is an acceptable number of commits/time to close issues/vulnerabilities per month. 
 
 \begin{figure*}
     \centering
@@ -200,12 +204,12 @@ The tool displays graphs for every one of the predicted sets of data that we mak
     \label{fig:const}
 \end{figure}
 
-\subsection{Discussion}
+\section{Discussion}
 In this section we will discuss the research questions that we outlined above and will attempt to answer. 
 
 Our first research question was whether we could combine features from the risk prediction methods to provide developers with a more well rounded risk measurement. We found that the combination of risk prediction methods was very helpful in identifying risky modules in dependency trees. Many of the dependencies that we investigated did not have any vulnerabilities reported in the NDV which is a desirable trait in any dependency. They were also, however, no longer under development which means if a vulnerability was discovered in a non-surviving project that it was not likely to be fixed. This may not be an issue for large organisations who incorporate open-source software and edit it to their liking but smaller organisations that don't have the resources to rework open-source software may wish to incorporate software that is still actively underdevelopment.
 
-The second research question we had was whether the creation of a visual predicted risk dependency graph would feasible. We used some smaller projects to test ours but due to the interactive functionality of the graph it would be feasible to create a similar graph for a larger dependency graph such as one used in industry. The issue that the project may run into in this case is that the linking from dependencies to URLs for GitHub projects that we used was investigated manually by the authors so it may become an issue with larger dependency lists as the list of links would be required to be more extensive. This could be avoided if there was an automatic system of gathering links for GitHub projects as we explore further in the future work section. 
+The second research question we had was whether the creation of a visual predicted risk dependency graph would feasible. We used some smaller projects to test ours but due to the zooming functionality of the graph it would be feasible to create a similar graph for a larger dependency graph such as one used in industry. The developer could explore any nodes marked red and zoom in to discover which dependencies they are. The issue that the project may run into in this case is that the linking from dependencies to URLs for GitHub projects that we used was investigated manually by the authors so it may become an issue with larger dependency lists as the list of links would be required to be more extensive. This could be avoided if there was an automatic system of gathering links for GitHub projects as we explore further in the future work section. 
 
 \section{Performance Evaluation}
 
@@ -258,15 +262,8 @@ In general the performance of our tool was fairly accurate in terms of the predi
 
 \bibliography{references}
 
-
 \appendices
 
-\subsection{Graphs}
-\label{Graphs}
-
-\subsection{Configuration Options JSON}
-\label{Graphs}
-\begin{comment}
 \section{Configuration Options JSON}
 
 \begin{lstlisting}[frame=single]
@@ -286,7 +283,6 @@ In general the performance of our tool was fairly accurate in terms of the predi
 
 
 \end{lstlisting}
-\end{comment}
 
 
 \ifCLASSOPTIONcaptionsoff
