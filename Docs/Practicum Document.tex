@@ -9,9 +9,6 @@
 \usepackage[listings,skins]{tcolorbox}
 \usepackage{amsmath}
 
-% remove \centering from \section
-\patchcmd{\section}{\centering}{}{}{}
-
 \begin{document}
 \title{ARIMA Prediction of Risk in \\Open-Source Project Dependencies\\
 {\footnotesize Technical Document - INSERT DATE FINISHED}
@@ -36,13 +33,13 @@ ARIMA prediction, software vulnerabilities, Maven dependency trees.
 \end{IEEEkeywords}
 
 \section{Introduction}
-The popularity of open-source software in large software projects has increased in the last number of years \cite{zajdel_open_2022}. The reuse of libraries can reduce development efforts substantially for developers. In particular, the use of open-source libraries is unrestricted and transparent which means developers can modify and distribute the code to their needs. The reuse of libraries can create a list of dependencies called a supply chain. The supply chain is a chain of dependencies, which can include open-source software. The supply chain involves a network of participants who perform activities on the dependencies \cite{k_singi_trusted_2019}. As software projects grow larger so do the supply chains and thus they can become difficult to manage leading developers to turn to package managers like Maven for Java projects. In Java in particular the average application depends on about 40 third-party libraries \cite{a_m_mir_effect_2023}. 
+In 2005 it was found that 87\% of US companies and government agencies use open-source software \cite{i_ceh_analysis_2021}. The popularity of open-source software in large software projects has increased in the last number of years \cite{zajdel_open_2022} and over 3.6 million repositories depend on the top 50 open-source projects \cite{subramanian_empirical_2020}. The reuse of libraries can reduce development efforts substantially for developers as they do not have to spend time working on problems already solved. In particular, the use of open-source libraries is unrestricted and transparent which means developers can modify and distribute the code to their needs. The reuse of libraries can create a list of dependencies called a supply chain. The supply chain is a chain of dependencies, which can include open-source software. The supply chain involves a network of participants who perform activities on the dependencies \cite{k_singi_trusted_2019}. As software projects grow larger so do the supply chains and thus they can become difficult to manage leading developers to turn to package managers like Maven for Java projects. In Java in particular the average application depends on about 40 third-party libraries \cite{a_m_mir_effect_2023}. In comparison to C/C++ repositories which rely on 6.3 third-party libraries on average \cite{tang_towards_2023}.
 
 With the increased use of open-source software, attackers have begun to exploit known vulnerabilities in trusted components in the supply chains by injecting malicious code into software packages \cite{ohm_backstabbers_2020}. These types of attacks are set to increase with 34\% of all recorded supply chain attacks taking place in 2020 and 66\% of all recorded supply chain attacks occurring in 2021 \cite{m_z_malik_protection_2023}. These attacks can come at a great cost to users of open-source software with data breaches in particular coming at a cost of \$388 million on average for a breach of 50 million data records\cite{x_wang_feasibility_2021}. Once vulnerabilities are discovered, it is important that users of open-source software identify whether they are impacted by the reported vulnerabilities or by inactivity in the open-source projects. 
 
-Prediction of risk is a technique that can be used to measure whether certain open-source projects are worth using and several methods are used to predict this type of risk. Some of the key techniques in the prediction of risk in open-source software include the prediction of vulnerabilities using code metrics, the prediction of project activity on version control systems such as GitHub, and the prediction of the number of vulnerabilities released on vulnerability databases such as the National Vulnerability Database (NVD). For the purpose of this paper, we focused on the prediction of project activity and the number of vulnerabilities per month. 
+Prediction of risk is a technique that can be used to measure whether certain open-source projects are worth using when measuring the quality of the software \cite{abunadi_towards_2015}. Several objects of analysis are used to predict this type of risk. Some of the key techniques in the prediction of risk in open-source software include the prediction of vulnerabilities using code metrics, the prediction of project activity on version control systems such as GitHub, and the prediction of the number of vulnerabilities released on vulnerability databases such as the National Vulnerability Database (NVD). For the purpose of this paper, we focused on the prediction of project activity and the number of vulnerabilities per month as these have been found to be promising \cite{xia_predicting_2022, s_wu_vulnerability_2020}. 
 
-At present, most of the existing research focuses on a specific object of analysis such as project activity or vulnerability data. This paper explores the prediction of risks in Maven dependency trees by examining both GitHub project activity and NVD vulnerability Common Vulnerabilities and Exposures (CVE) data. We aim to use time-series forecasting, or more specifically, ARIMA prediction is used for both sets of data based on user configuration data and returns a coloured graph based on the analysed risk. The creation of a tool like this could help users identify any vulnerable components in their supply chain so they can find an alternative component which is not as risky. 
+At present, most of the existing research focuses on a specific object of analysis such as project activity or vulnerability data. This paper explores the prediction of risks in Maven dependency trees by examining both GitHub project activity and NVD vulnerability Common Vulnerabilities and Exposures (CVE) data. We aim to use time-series forecasting, or more specifically, ARIMA prediction is used for both sets of data based on user configuration data and returns a coloured graph based on the analysed risk. The creation of a tool like this could help users identify any vulnerable components in their supply chain so they can find an alternative component which is not as risky \cite{noauthor_open_nodate}. 
 
 The structure of this paper is as follows: we first explore the literature on the prediction of risk in open-source software focusing in particular on both project activity predictions and vulnerability predictions. We then explore some case studies where a tool to explore risk in dependency trees would have been useful for users to identify risky modules. We then describe the data from APIs that we used as well as the different predictions we made. Finally, we describe the calculations and algorithms we used when predicting risk according to user-assigned metrics and the results that we obtained. 
 \\\\
@@ -79,8 +76,15 @@ In November 2021 a vulnerability was discovered in the popular open-source loggi
 \subsection{Heartbleed Vulnerability}
 In April 2014 the Heartbleed vulnerability was discovered in the OpenSSL connection versions 1.0.1 and 1.0.1f. OpenSSl is a popular open-source cryptography library. The vulnerability comes from the established connection being kept 'alive; through \textit{Heartbeat} messages. Hackers could craft a similar message to the official \textit{Heartbeat} Message and thus receive private information back \cite{s_kyatam_heartbleed_2017}. It was estimated that 24-55\% of HTTPS servers in the Alexa Top 1 million were vulnerable and even 48 hours after the disclosure of the vulnerability still around 11\% remained vulnerable. This attack could reveal secure data such as private keys and only 10\% of affected servers changed their TLS certificates and of these 14\% did not replace their private keys thus gaining no protection \cite{durumeric_matter_2014}. A number of affected servers would not have known that they were affected so a tool such as the one we propose would have been useful in discovering that they were vulnerable to Heartbleed. 
 
+\begin{figure}
+\begin{center}
+    \includegraphics[scale=0.5]{Pipeline.png}
+    \caption{The Time Series Pipeline.}
+    \label{fig:pipeline}
+\end{center}
+\end{figure}
 \section{Methodology}
-This paper explores the creation of a tool to predict risk in dependency trees. We aim to combine two of the commonly used objects of analysis as explored above to give a more well-rounded analysis vs focusing on one. In this section we initially describe the data we used and then the prediction methods as well as the calculations of risk that we used. For both of the types of prediction, we did not consider seasonality as papers we reviewed above did not find it to be a significant parameter. We focus on two methods of risk prediction here: 
+This paper explores the creation of a tool to predict risk in dependency trees. We aim to combine two of the commonly used objects of analysis as explored above to give a more well-rounded analysis vs focusing on one. In this section we initially describe the data we used and then the prediction methods as well as the calculations of risk that we used. For both of the types of prediction, we did not consider seasonality as papers we reviewed above did not find it to be a significant parameter \cite{roumani_time_2015}. The Time Series pipeline used in this paper can be seen in Figure \ref{fig:pipeline}. We focus on two methods of risk prediction here: 
 \begin{enumerate}
     \item Project Activity Prediction
     \item Vulnerability CVE Data Prediction
@@ -89,7 +93,7 @@ This paper explores the creation of a tool to predict risk in dependency trees. 
 \subsection{Data Gathering}
 The first set of test data used for this project were gathered from various Maven projects available on GitHub. We gathered some small projects to test the initial graphing and prediction techniques so that we would not have to wait a long time for the results. As one of the case studies we focused on was the Log4j vulnerability we made sure to test a sample project that incorporated the Log4j logging library. 
 
-The GitHub API was used for the project activity risk prediction and time-to-close issues and commits per month were determined as appropriate measures of risk for this project as they were identified as predictors of a project's health in the literature we studied. The project has the option to predict either the issue data, the commit data or both at the same time. To gather the GitHub URLs for each of the dependencies we had to manually search for them and add them to our file of libraries to corresponding URLs which was an unfortunate roadblock. 
+The GitHub API was used for the project activity risk prediction and time-to-close issues and commits per month were determined as appropriate measures of risk for this project as they were identified as predictors of a project's health in the literature we studied \cite{xia_predicting_2022}. The project has the option to predict either the issue data, the commit data or both at the same time. To gather the GitHub URLs for each of the dependencies we had to manually search for them and add them to our file of libraries to corresponding URLs which was an unfortunate roadblock. 
 
 The NVD API was used to gather data for the vulnerability risk prediction and did not to discriminate between the different severity levels as there was not a large number of data for each of the dependencies and it was unnecessary for the purpose of this research with the focus being a general overview of a project's risk. The number of vulnerabilities per month was gathered for each of these using this API. 
 
@@ -103,8 +107,8 @@ The list of sources of data and the purpose of their use for this project can be
 \hline
     \textbf{Data Source} & \textbf{Purpose} & \textbf{Type} \\ \hline
     GitHub projects & Find Dependencies & Maven-dependency trees \\ \hline
-    GitHub & Project Meta-data & API  \\ \hline
-    National Vuln. Database & Vulnerability Prediction & CVE API \\ \hline
+    GitHub API & Project Meta-data & API  \\ \hline
+    NVD API & Vulnerability Prediction & CVE API \\ \hline
 \end{tabular}
 \end{center}
 \end{table}
@@ -121,7 +125,6 @@ We used a network graph with each of the dependencies displayed as nodes on the 
     \label{fig:key}
 \end{center}
 \end{figure}
-
 
 \subsection{Project Activity Prediction}
 For the project activity prediction, we used data from the GitHub API \cite{noauthor_github_nodate}. The user has the option to specify whether they wish to investigate the issue or commit data or both. We used all of the data available instead of specifying a specific time range as all of the projects had different time ranges available to use. We gathered all of the commits/closed issues available on the GitHub API and processed this to ensure we had all of the monthly data. In the case of commits this was simply a count of commits per month and we added a 0 for each of the months with no data. For the issues we calculated the time-to-close in days for each and got a monthly average for this, adding a 0 for each of the months that had no data. 
@@ -173,7 +176,7 @@ These are the calculations we used for the risk scores. The idea we had was to c
 \end{figure*}
 \section{Results \& Graphs}
 
-In this section, we will discuss the results we obtained with our tool as well as some examples of the resulting graphs. We will focus on one particular Log4j sample project \cite{noauthor_logging-log4j-sampleslog4j-server_nodate} that we tested although we tested a number of different types of projects in addition to this to get establish a baseline for the functionality of the graphing. We first look at the risk dependency visual that we created and then we explore two examples of the predictions we made - one for project activity and one for vulnerability predictions. We chose two different dependency graphs for the prediction examples to give an idea of how accurate the predictions can be for both types of prediction. 
+In this section, the results obtained with this tool as well as some examples of the resulting graphs will be discussed. We will focus on one particular Log4j sample project \cite{noauthor_logging-log4j-sampleslog4j-server_nodate} that we tested although we tested a number of different types of projects in addition to this to get establish a baseline for the functionality of the graphing. By testing different projects we were able to test different dependencies. The baseline for the graphing was to establish feasibility for this project. We first look at the risk dependency visual that we created and then we explore two examples of the predictions we made - one for project activity and one for vulnerability predictions. We chose two different dependency graphs for the prediction examples to give an idea of how accurate the predictions can be for both types of prediction. 
 
 Figure \ref{fig:tree} shows a final dependency tree with colour-coded risk evaluations of each of the dependencies. This figure was based on a user configuration of two vulnerabilities being acceptable and 70 being the minimum number of commits per month as acceptable. It is clear that there a number of lower level dependencies which are risky which the user may not be expecting. The graph is interactive and each specific dependency can be zoomed in on so if the graphs are larger or more dense the user can pick out specific risky nodes and choose to investigate their dependencies further or even compare different dependencies. 
 
@@ -249,7 +252,7 @@ In this section we identify some possible threats to the validity of the results
 The dataset that we used was quite limited. We gathered a small number of maven projects to test the initial design. This was to ensure that we could run and test the code quickly without having to wait hours for all of the graphs to generate. The code takes a significant amount of time to run for larger projects - although the data gathering takes up the largest proportion of time. To combat the lack of datasets available and the manual work gathering GitHub URLs we decided to analyse a sample Log4j maven project as this had known vulnerabilities and thus had a spike in vulnerabilities and project activity. Another dataset issue we had was that there was not a lot of vulnerability data per month in the same way that there was for the project activity. This as we discussed above, means that the vulnerability predictions were not always the most accurate that they could have been. 
 
 \subsubsection{AutoARIMA}
-We investigated the use of manual ARIMA prediction when starting development on this project but this meant we had to explore pacf and acf plots for each of the predictions which was unfeasible for some of the larger dependency trees. We found it was easy enough to get the differencing parameter calculated but very difficult to calculate the others, The use of the AutoARIMA predictions means we are not getting the most accurate prediction possible for every dataset but as this project requires a lot of API usage and data processing for each of the dependencies (which can be a large number) we decided that it made more sense to have an automatic system rather than manually analysing each of the datasets. The system we are using is assuming that there is no seasonality in the datasets as this was what was reported in the literature we reviewed on the use of Time Series to predict values in both project activity and vulnerability reporting. 
+The use of manual ARIMA prediction was investigated when starting development on this project but this meant pacf and acf plots for each of the predictions would need to be investigated which was unfeasible for some of the larger dependency trees. It was found to be reasonably simple to get the differencing parameter calculated but very difficult to calculate the others, The use of the AutoARIMA predictions means the predictions are not as accurate as they could be for every dataset but as this project requires a lot of API usage and data processing for each of the dependencies (which can be a large number) it made more sense to have an automatic system rather than manually analysing each of the datasets. The system used is assuming that there is no seasonality in the datasets as this was what was reported in the literature we reviewed on the use of Time Series to predict values in both project activity and vulnerability reporting as explored above. 
 
 \section{Conclusions \& Further Work}
 The growing reliance on open-source software has introduced a number of challenges regarding the security and integrity of software supply chains. Tools to explore the risk in software supply chains like the one we describe could be very useful in finding and encouraging developers to fix open-source modules. As the reliance on open-source software grows, so does the need for tools like this. We attempted to answer two research question and our investigation concludes that the combination of the two measures of risk, both project activity and vulnerabilities over time give a better overview of the risk in using a project. We have given this overview in a visually appealing graph that can give an overall indicator of a project's risk. 
@@ -277,9 +280,36 @@ In general the performance of our tool was fairly accurate in terms of the predi
 }
 \end{lstlisting}
 
-\section{Log4j Dependency Tree}
-
-\begin{lstlisting}[frame=single]
+\section{Dependency Tree Example}
+\begin{lstlisting}
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------------< org.youtube:form >--------------------------
+[INFO] Building form 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- dependency:3.6.0:tree (default-cli) @ form ---
+[INFO] org.youtube:form:jar:1.0-SNAPSHOT
+[INFO] +- org.openjfx:javafx-controls:jar:16:compile
+[INFO] |  +- org.openjfx:javafx-controls:jar:win:16:compile
+[INFO] |  \- org.openjfx:javafx-graphics:jar:16:compile
+[INFO] |     +- org.openjfx:javafx-graphics:jar:win:16:compile
+[INFO] |     \- org.openjfx:javafx-base:jar:16:compile
+[INFO] |        \- org.openjfx:javafx-base:jar:win:16:compile
+[INFO] +- org.openjfx:javafx-fxml:jar:16:compile
+[INFO] |  \- org.openjfx:javafx-fxml:jar:win:16:compile
+[INFO] +- org.eclipse.persistence:eclipselink:jar:2.7.7:compile
+[INFO] |  +- org.eclipse.persistence:jakarta.persistence:jar:2.2.3:compile
+[INFO] |  \- org.eclipse.persistence:commonj.sdo:jar:2.1.1:compile
+[INFO] +- org.eclipse.persistence:javax.persistence:jar:2.0.0:compile
+[INFO] \- org.postgresql:postgresql:jar:9.3-1102-jdbc41:compile
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.360 s
+[INFO] Finished at: 2024-05-19T20:49:23+01:00
+[INFO] ------------------------------------------------------------------------
 
 
 \end{lstlisting}
