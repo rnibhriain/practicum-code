@@ -57,10 +57,12 @@ The idea is that this project and its corresponding data - config.JSON, github_u
 5. Place the folder in a maven project
 6. Install the requirements using command (in the Data folder):
 ```bash
+  cd Data
   pip install -r requirements.txt
 ```
 6. Run the analysis file using:
 ```bash
+  cd ..
   py Analysis.py
 ```
 7. Explore the resulting graphs!
