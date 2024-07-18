@@ -35,6 +35,7 @@ This part of the analysis aims to predict how many vulnerabilities will be repor
 - Final Report ( In Progress )
 - Practicum Presentation ( Started )
 - Blog
+- Images 
 
 ## Data 📑
 
