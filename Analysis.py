@@ -14,7 +14,7 @@ import subprocess
 from pyvis.network import Network
 import json
 from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error
 
 ##############################################################################
 # CONFIG OBJECT And SetUp                                                    #
@@ -80,7 +80,7 @@ def findDependencies ():
     # this command gets the dependencies from a maven project
     # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell = True )
 
-    f = open( "Data/dependencies5.txt", "r" )
+    f = open( "Data/dependencies4.txt", "r" )
 
     # add central node for the project
     G.add_node( "PROJECT", color = "black",  shape = 'square' )
@@ -432,7 +432,7 @@ def projectPrediction ( df, repo, type ):
         return -1
 
     # Automatic Prediction
-    autoparameters = auto_arima( y = df[ 'Actual' ], seasonal = False )
+    autoparameters = auto_arima( y = df[ 'Actual' ], )
 
     # Place predicted values in a dataframe
     df2 = pd.DataFrame({
@@ -472,22 +472,18 @@ def projectPrediction ( df, repo, type ):
     df = df.replace( np.nan, 0 )
 
     # EVALUATION SECTION
-    df[ 'forecast_error' ] = df[ 'Actual' ] - df[ 'Prediction' ]
-
-    # Calculate the absolute percentage errors
-    df[ 'absolute_percentage_error' ] = ( df[ 'forecast_error' ].abs() / df[ 'Actual' ].replace( 0, 1 ).abs() ) * 100
-
-    # Calculate the MAPE
-    mape = df[ 'absolute_percentage_error' ].mean() 
-
     mae = mean_absolute_error( df[ 'Actual' ], df[ 'Prediction' ] )
 
-    rmse = mean_squared_error( df[ 'Actual' ], df[ 'Prediction' ], squared = False )
+    rmse = root_mean_squared_error( df[ 'Actual' ], df[ 'Prediction' ] )
+
+    std = df[ 'Actual' ].std()
+
+    df[ 'Actual' ].std()
 
     print( "*******************************************************************************" )
     print( "* Evaluation Metrics for ", type, " Prediction for ", repo, ":" )
     print( "\n" )
-    print( "* MAPE:", mape )
+    print( "* Standard Deviation:", std )
     print( "\n" )
     print( "* MAE:", mae )
     print( "\n" )
@@ -710,22 +706,17 @@ def vulnerabilityPrediction ( df, dependency ):
     df = df.replace( np.nan, 0 )
     
     # EVALUATION SECTION
-    df[ 'forecast_error' ] = df[ 'Actual' ] - df[ 'Prediction' ]
-
-    # Calculate the absolute percentage errors
-    df[ 'absolute_percentage_error' ] = ( df[ 'forecast_error' ].abs() / df[ 'Actual' ].replace( 0, 1 ).abs() ) * 100
-
-    # Calculate the MAPE
-    mape = df[ 'absolute_percentage_error' ].mean() 
 
     mae = mean_absolute_error( df[ 'Actual' ], df[ 'Prediction' ] )
 
-    rmse = mean_squared_error( df[ 'Actual' ], df[ 'Prediction' ], squared = False )
+    rmse = root_mean_squared_error( df[ 'Actual' ], df[ 'Prediction' ] )
+
+    std = df[ 'Actual' ].std()
 
     print( "**************************************************************************************************" )
     print( "* Evaluation Metrics for Vulnerability Prediction for", dependency, ":" )
     print( "\n" )
-    print( "* MAPE:", mape )
+    print( "* Standard Deviation:", std )
     print( "\n" )
     print( "* MAE:", mae )
     print( "\n" )
