@@ -11,7 +11,7 @@
 
 \begin{document}
 \title{Risk in \\Open-Source Projects\\
-{\footnotesize Technical Document - INSERT DATE FINISHED}
+{\footnotesize Technical Document - 22-07-2024}
 }
 
 \author{\IEEEauthorblockN{Róisín Ní Bhriain}
@@ -208,11 +208,9 @@ The tool displays graphs for every one of the predicted sets of data made. If th
 \end{figure}
 
 \section{Discussion}
-In this section, we will discuss our progress in answering the research question outlined in the Introduction. Can we provide developers with an effective risk measure when choosing between multiple candidate open-source components?
+In this section, we will discuss our progress in answering the research question outlined in the introduction. Can we provide developers with an effective risk measure when choosing between multiple candidate open-source components?
 
-Our aim was to investigate whether features could be combined from the popular risk prediction methods to provide developers with a more complete risk measurement. The combination of risk prediction methods aided in identifying high-risk modules in dependency trees. Many of the dependencies investigated did not have any vulnerabilities reported in the NVD which is a desirable trait in any dependency. They were also, however, some dependencies no longer under development which means if a vulnerability were discovered in a non-surviving project it was unlikely to be fixed. This may not be an issue for large organisations that incorporate open-source software and configure it to meet their needs but smaller organisations lacking the resources to rework open-source software, may prefer to incorporate software that is still actively under development.
-
-The second research question was whether the creation of a visual predicted risk dependency graph would be feasible. Some smaller projects were used to test the described tool but due to the zooming functionality of the graph, it would be feasible to create a similar graph for a larger dependency graph such as one used in industry. The developer could explore any nodes marked red and zoom in to discover which dependencies they are. The issue that the project may run into in this case is that the linking from dependencies to URLs for GitHub projects that used was gathered manually so it may become an issue with larger dependency lists as the list of links would be required to be more extensive. This could be avoided if there was an automatic system of gathering links for GitHub projects as we explore further in the future work section. 
+Our aim was to investigate whether features could be combined from the popular risk prediction methods to provide developers with a more complete risk measurement. The combination of risk prediction methods aided in identifying high-risk modules in dependency trees. Many of the dependencies investigated did not have any vulnerabilities reported in the NVD which is a desirable trait in any dependency. They were also, however, some dependencies no longer under development which means if a vulnerability were discovered in a non-surviving project it was unlikely to be fixed. This may not be an issue for large organisations that incorporate open-source software and configure it to meet their needs but smaller organisations, lacking the resources to rework open-source software, may prefer to incorporate software that is still actively under development. We generate a visual risk graph of the dependency tree with the calculated risk scores for each of the predictions. This graph gives an overall risk analysis for the Maven project's dependency tree and it is feasible to create a similar graph for a larger industry graph due to the zooming functionality. We believe our tool and our investigation concludes that the combination of risk prediction methods can provide developers with an effective risk measure when choosing between candidate open-source components. 
 
 \section{Performance Evaluation}
 To evaluate the algorithm, a number of Maven projects were selected with varying dependencies. A sample Log4j maven project was used. 
