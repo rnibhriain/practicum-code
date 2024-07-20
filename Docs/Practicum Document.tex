@@ -51,6 +51,8 @@ We will answer the following research question:\\
 
 By answering the above question we aim to provide some new insights in the area of risk prediction for Maven projects. 
 
+\section{Key Terminology}
+
 \section{Related Work}
 In this section, we review relevant work in the prediction of risk in open-source software. We examine the machine learning models used as well as the different objects of analysis used in the predictions.  
 
@@ -84,20 +86,21 @@ In April 2014 the Heartbleed vulnerability was discovered in OpenSSL versions 1.
 \end{figure}
 
 \section{Methodology}
-This paper explores the creation of a tool to predict risk in dependency trees. The tool aims to combine two (rather than focusing on one) of the commonly used objects of analysis as explored above to give a more complete analysis. In this section we initially describe the data we used and subsequently the prediction methods as well as our approach to risk. For both predictions, seasonality was not considered as the papers reviewed above did not find it to be a significant parameter \cite{roumani_time_2015}. The Time Series pipeline used in this paper can be seen in Figure \ref{fig:pipeline}. We focus on two risk prediction methods here: 
+This paper explores the creation of a tool to predict risk in dependency trees. The tool aims to combine two (rather than focusing on one) of the commonly used objects of analysis as explored above to give a more complete analysis. In this section we initially describe the data we used and subsequently the prediction methods as well as our approach to risk. For both predictions, seasonality was not considered as the papers reviewed above did not find it to be a significant parameter \cite{roumani_time_2015}. The time series pipeline used in this paper can be seen in Figure \ref{fig:pipeline}. We focus on two risk prediction methods here: 
+
 \begin{enumerate}
     \item Project Activity Prediction
     \item Vulnerability CVE Data Prediction
 \end{enumerate}
 
 \subsection{Data Gathering}
-The first set of test data used for this project was gathered from various Maven projects available on GitHub. Some small projects were gathered to test the initial graphing and prediction techniques so that there would not be a large delay in getting the results of the dependency graph. As one of the case studies identified the Log4j vulnerability a sample project that incorporated the Log4j logging library was tested. 
+The first set of test data used for this project was gathered from various Maven projects available on GitHub. Some small projects were gathered to test the feasibility of the graphing and prediction techniques. As explored in one of the case studies, a sample project that incorporated the Log4j logging library was tested. 
 
-The GitHub API was used for the project activity risk prediction and time-to-close issues and commits per month were determined as appropriate measures of risk for this project as they were identified as predictors of a project's health in the literature studied \cite{xia_predicting_2022}. The project has the option to predict either the issue data, the commit data or both at the same time. Each of the dependencies required a manual search for its corresponding GitHub URL and these gathered URLs were then added to the file of libraries to corresponding URLs. This was an unfortunate roadblock as it limited the amount of testing of projects that could be done. 
+The GitHub API was used for the project activity risk prediction and time-to-close issues and commits per month were determined as appropriate measures of risk for this project as they were identified as predictors of a project's health in the literature \cite{xia_predicting_2022}. The project has the option to predict either the issue data, the commit data or both. Each of the dependencies required a manual search for its corresponding GitHub URL and these gathered URLs were then added to the file of libraries to corresponding URLs. This was an unfortunate roadblock as it limited the amount of testing of projects that could be carried out. 
 
-The NVD API was used to gather data for the vulnerability risk prediction and did not discriminate between the different severity levels as there was not a large number of data for each of the dependencies and it was unnecessary for the purpose of this research with the focus being a general overview of a project's risk. This is due to the fact that not every dependency had released a vulnerability every month and the data was spread out over time.  The number of vulnerabilities per month was gathered for each of these using this API. 
+The NVD API was used to gather data for the vulnerability risk prediction and did not discriminate between different vulnerability severity levels as there was not a large quantity of data for each of the dependencies and it was unnecessary for the purpose of this research with the focus being a general overview of a project's risk. This is due to the fact that not every dependency had announced a vulnerability every month and the data was spread out over time.  The number of vulnerabilities per month was gathered for each of these using this API. 
 
-The list of sources of data and the purpose of their use for this project can be seen in Table \ref{sourcelist}. The source of data, the purpose of the data, and the type of data that was used are displayed in the table. 
+Data sources and their role in this project can be seen in Table \ref{sourcelist}. The source of data, the purpose of the data, and the type of data that was used are displayed in the table. 
 
 \begin{table}
  \caption{List of Sources Used}
@@ -114,9 +117,9 @@ The list of sources of data and the purpose of their use for this project can be
 \end{table}
 
 \subsection{Dependencies Graphing}
-The dependency graphing was created by being placed in a maven project and then running the dependency tree maven command. The resulting tree is analysed in our project and each library keyword is extracted for the coordinating GitHub URLs gathered. The project activity was then predicted and vulnerability data was collected using the extracted libraries and the dependency keywords. After the risk scores have been returned each of the dependencies is assigned a node in the graph according to its depth and the colour is assigned based on the risk score.
+The dependency graph was constructed by being placed in a maven project and then running the dependency tree maven command. The resulting tree is analysed in our project and each library keyword is extracted for the coordinating GitHub URLs gathered. The project activity was then predicted and vulnerability data was collected using the extracted libraries and the dependency keywords. After the risk scores have been returned each of the dependencies is assigned a node in the graph according to its depth and the colour is assigned based on the risk score.
 
-A NetworkX graph was used with each of the dependencies displayed as nodes on the graph with their risk scores assigned as colours. The project itself is displayed as a black square node. There is a key defining the risk levels of each of the nodes for helpful decoding of the graphs as displayed in Figure \ref{fig:key}. The edges represent the dependency links between nodes and the depth of each of the nodes from the project itself represents how dependencies can rely on other dependencies. The graph can show users how they are relying on dependencies that they did not directly add to their project and how risk can be involved in importing different dependencies. 
+A NetworkX graph was constructed with each of the dependencies displayed as nodes on the graph and their risk scores reflected as colours. The original project is displayed as a black square node. There is a key defining the risk levels of each of the nodes for helpful decoding of the graphs as displayed in Figure \ref{fig:key}. The edges represent the dependency links between nodes and the depth (distance) of each of the nodes from the original project captures how dependencies rely on other dependencies. The graph shows users how they are relying on dependencies that they did not directly add to their project and how risk can be involved in importing different dependencies. 
 
 \begin{figure}
 \begin{center}
@@ -126,19 +129,18 @@ A NetworkX graph was used with each of the dependencies displayed as nodes on th
 \end{center}
 \end{figure}
 
-\subsection{Project Activity Prediction}
-For the project activity prediction, data from the GitHub API was used \cite{noauthor_github_nodate}. The focus was on number of commits per month and time-to-fix issues as these were identified as indicators of a project's activity and thus it's success \cite{sen_open_2012, chahal_fuzzy_2016}. The user has the option to specify whether they wish to investigate the issue, commit data or both. All of the data available was used instead of specifying a specific time range as all of the projects had different time ranges available to use. All of the commits/closed issues available were gathered using the GitHub API and this was processed to ensure there was data for each month up until the current date. In the case of commits, this was simply a count of commits per month and we added a 0 for each of the months with no data. For the issue data, the time-to-close in days was gathered for each issue and a monthly average was calculated, adding a 0 for each of the months that had no data. 
+\subsection{Project Activity Measurement}
+For the project activity prediction, we used data fetched from the GitHub API \cite{noauthor_github_nodate}. The focus was on number of commits per month and time-to-fix issues as these were identified as indicators of a project's activity and thus it's success \cite{sen_open_2012, chahal_fuzzy_2016}. The user has the option to specify whether they wish to include the issue, commit data or both. All data available was used instead of specifying a specific time range as all of the projects had different time ranges available to use. All commits/closed issues available were gathered using the GitHub API and was processed to ensure there was data for each month up until the current date. In the case of commits, this was simply a count of commits per month and we added a zero for each of the months with no data. For the issue data, the time-to-close in days was gathered for each issue and a monthly average was calculated, adding a  for each of the months that had no data. 
 
-For the prediction, the date was used as an index and after calculating the \textit{d} parameter by differencing the data until the p-value of the augmented \textit{Dickey–Fuller test (ADF)} test was below 0.05, the \textit{Partial Autocorrelation Function (PACF)} and \textit{Autocorrelation function (ACF)} graphs were also examined it was not feasible to implement this system of parameter selection at a large scale. The \textit{Auto ARIMA} library was used to make the predictions as it offered a more useful manner of selecting parameters when predicting across many projects \cite{noauthor_pmdarima_nodate}. The final value predicted for the current month was returned for each of the GitHub libraries. If the data is constant or there is no data a -1 was returned as there is not enough data to make a prediction. 
+For the prediction, the date was used as an index and after calculating the \textit{d} parameter by differencing the data until the p-value of the augmented \textit{Dickey–Fuller test (ADF)} test was below 0.05. To identify the p and q parameters the \textit{Partial Autocorrelation Function (PACF)} and \textit{Autocorrelation function (ACF)} graphs were examined but it was not feasible to implement this system of parameter selection at a large scale. The \textit{Auto ARIMA} library was used to make the predictions as it offered a suitable method of selecting parameters when predicting across many projects \cite{noauthor_pmdarima_nodate}. The predicted value for the next month was returned for each of the GitHub libraries. If the data is constant or there is no data a -1 was returned as there is not enough data to make a prediction. 
 
 \subsection{Vulnerability CVE Data Prediction}
-For the vulnerability CVE data prediction vulnerability data from the NVD API was used \cite{noauthor_vulnerability_nodate}. The dependencies were then split into keywords to ensure that all of the relevant CVEs for that dependency were gathered. For each of the keywords, a request is made to the API and it is ensured that each of the returned CVEs is not in the already gathered list of CVEs. The monthly data, similar to the commits above, was gathered and the number of commits per month was counted and a 0 was filled in where there are none. 
+For the vulnerability CVE data prediction data extracted using the NVD API was used \cite{noauthor_vulnerability_nodate}. Dependencies were then split into keywords to ensure that all of the relevant CVEs for that dependency were gathered. For each of the keywords, a request is made and any CVEs not already in the array of gathered CVEs are added. The monthly data, similar to the commits above, was gathered and the number of vulnerabilities per month was counted and a zero was inserted for missing values. 
 
-The prediction method used was very similar to the project activity method. Some dependencies do not have many vulnerabilities per month or even per year. As there is not a lot of data for the vulnerability prediction section, it can be assumed if the values are constant or there is no data that there will be no vulnerabilities that month and return a 0. The \textit{Auto ARIMA} library was used in this case to make the predictions as above for feasibility it did not make sense to examine PACF and ACF graphs for each of the dependencies \cite{noauthor_pmdarima_nodate}. 
-
+The prediction method used is similar to that used to model project activity. Some dependencies have few vulnerabilities per month or even per year. The \textit{Auto ARIMA} library was used to make the predictions. 
 
 \subsection{Risk Calculations}
-In order to calculate the risk, some configuration options were defined for a user to decide how many commits, days-to-close issues, and vulnerabilities per month are acceptable. These can be added to in the future if other risk metrics are needed. 
+In order to calculate  risk, configuration options were defined for a user to decide how many commits, days-to-close issues, and vulnerabilities per month are acceptable. Further configuration options can be added as required. 
 
 \[ projectActivityScore = ( x / numDaysToFixIssues ) * 10\]
 
@@ -166,7 +168,7 @@ In order to calculate the risk, some configuration options were defined for a us
 \end{center}
 \end{table}
 
-These are the calculations used for the risk scores. The idea was to calculate a score as defined above for project activity and a score for vulnerabilities and divide them by 2. There is the option to decide project activity based on issues fix time, commits per month or both. The user supplies the configuration options of \textit{numDaysToFixIssues}, \textit{numCommits}, and \textit{vulCountsPerMonth}. They set the acceptable levels of risk for their project. The idea is that they are then assigned a risk score: where not enough data is any number less than 0, 0-2.5 is low risk, 2.5-5 is medium risk, 5-7.5 is high risk and anything above 7.5 is a severe risk. These can be seen in table \ref{risklevels}. The overall score is then displayed on the graph - colour-coded using the key from Figure \ref{fig:key}. The appropriate levels of risk are left to the user to decide as some organisations/developers would have different ideas of what number is an acceptable number of commits/time to close issues/vulnerabilities per month. 
+Above are the formulae for risk calculations. The aim was to calculate a score as defined above for project activity and a score for vulnerabilities and divide them by 2. There is the option to calculate project activity risk based on issue fix time, commits per month or both. The user sets the configuration options of \textit{numDaysToFixIssues}, \textit{numCommits}, and \textit{vulCountsPerMonth}. They set the acceptable levels of risk for their project. The idea is that they are then assigned a risk score: any number less than 0 indicates there is not enough data, 0-2.5 is low risk, 2.5-5 is medium risk, 5-7.5 is high risk and anything above 7.5 is a severe risk. These can be seen in table \ref{risklevels}. The overall score is then displayed in the graph - colour-coded using the key from Figure \ref{fig:key}. The risk calculation criteria are left to the user to decide as some organisations/developers have different priorities regarding an acceptable number of commits/time to close issues/vulnerabilities per month. 
 
 \begin{figure*}
     \centering
@@ -174,11 +176,11 @@ These are the calculations used for the risk scores. The idea was to calculate a
     \caption{Dependency tree results with risk levels colour coded.} 
     \label{fig:tree}
 \end{figure*}
+
 \section{Results}
+In this section, the results obtained from our tool as well as some examples of the resulting graphs are discussed. One particular project \cite{noauthor_logging-log4j-sampleslog4j-server_nodate} affected by the Log4j vulnerability will be the focus, although a number of different types of projects were also tested to establish a baseline for the functionality of the graphing. By testing different types of projects, different dependencies were tested for risk. First, the risk dependency visual that was created is examined. Subsequently two graphs of the predictions made are examined - one for project activity and one for vulnerability predictions. Risk graphs for different dependencies are explored. 
 
-In this section, the results obtained with this tool as well as some examples of the resulting graphs will be discussed. One particular Log4j sample project \cite{noauthor_logging-log4j-sampleslog4j-server_nodate} that was tested will be the focus, although a number of different types of projects were tested in addition to this to establish a baseline for the functionality of the graphing. By testing different types of projects, different dependencies were tested for risk. The baseline for the graphing was to establish feasibility for this project. First, the risk dependency visual that was created is examined and then two examples of the predictions made - one for project activity and one for vulnerability predictions. Prediction graphs for different dependencies are explored to give an idea of how accurate the predictions can be for both types of prediction. 
-
-Figure \ref{fig:tree} shows a final dependency tree with colour-coded risk evaluations of each of the dependencies. This figure was based on a user configuration of two vulnerabilities being acceptable and 70 being the minimum number of commits per month as acceptable. It is clear there are a number of lower-level dependencies which are risky which the user may not be expecting. The graph is interactive so each specific dependency can be zoomed in on. If the graphs are larger or more dense the user can pick out specific risky nodes and choose to investigate their dependencies further or even compare different dependencies. 
+Figure \ref{fig:tree} shows a final dependency graph with colour-coded risk evaluations for each of the dependencies. This figure was based on a user configuration of two vulnerabilities per month being acceptable with a minimum of 70 commits per month as acceptable. It is clear there are a number of lower-level dependencies which are risky which the user may not be expecting. The graph is interactive so the colour of each specific dependency can be investigated. 
 
 \begin{figure}
     \centering
@@ -187,7 +189,7 @@ Figure \ref{fig:tree} shows a final dependency tree with colour-coded risk evalu
     \label{fig:commits}
 \end{figure}
 
-Figure \ref{fig:commits} shows the commits per month prediction vs actual values for the JUnit4 package. It is clear from this graph that the project activity in terms of commits was at its highest from around 2012 to 2017. 
+Figure \ref{fig:commits} shows the commits per month, fitted vs actual values, for the JUnit4 package. It is clear from this graph that the project activity in terms of commits was at its highest from around 2012 to 2017. 
 
 \begin{figure}
     \centering
@@ -196,9 +198,9 @@ Figure \ref{fig:commits} shows the commits per month prediction vs actual values
     \label{fig:vulns}
 \end{figure}
 
-Figure \ref{fig:vulns} shows the vulnerabilities for Log4j over time and it is clear to see where the Log4j vulnerabilities were released in 2021 and these are predicted reasonably well in the subsequent months. 
+Figure \ref{fig:vulns} shows the Log4j vulnerabilities over time and it is clear the Log4j vulnerabilities were reported in 2021 and these are predicted reasonably well in the subsequent months. 
 
-The tool displays graphs for every one of the predicted sets of data made. If there is not enough data for the prediction to be made then there is no corresponding graph. The idea is that the user can then investigate how accurate the predictions are for each of the graphs. For graphs with less data over time, the predictions did not perform well and occasionally there were constant lines being returned rather than actual predictions which could not be returned as a value for the risk dependency graph. An example of this can be seen in Figure \ref{fig:const}. The predicted values for the vulnerability data for the Jackson databind dependency. The predicted values are a constant value of just below 1 which is not accurate given the actual values. 
+The tool displays graphs for every fitted model. If there is not enough data for the prediction to fit a model then there is no corresponding time series graph. The user can then investigate how accurate the fitted values are for each of the models. For time series graphs with less data over time, the models did not perform well and occasionally there were constant lines being returned rather than a fitted model which could not be returned as a value for the risk dependency graph. An example of this can be seen in Figure \ref{fig:const}. The predicted values for the vulnerability data for the Jackson databind dependency. The predicted values are a constant value of just below 1 which is not accurate given the actual values. 
 
 \begin{figure}
     \centering
@@ -238,7 +240,7 @@ These are the most commonly used evaluation metrics when evaluating Time Series 
 \end{center}
 \end{table}
 
-The results we obtained for the two figures, fig \ref{fig:commits} and fig \ref{fig:vulns}, can be seen in Table \ref{evaluations}. The results for the commit prediction model can be compared with the standard deviation of the actual values which is 152.79. This shows that the MAE and RMSE results are within a reasonable error margin. The RMSE result is larger than the MAE result as there are large fluctuations in the commits per month data but the fitted model performs well. The results for the vulnerability predictions can be compared with the standard deviation of the actual values which is 0.432. Both the MAE and the RMSE values for the vulnerability prediction model are within a reasonable error margin when compared to the standard deviation. Considering the Log4j vulnerability caused a large spike in vulnerabilities being reported for this package, the vulnerability prediction performs quite well and takes these spikes into account when predicting the next values. Overall both predictions performed well and thus the returned final fitted value is an accurately predicted value.
+The results we obtained for the two figures, fig \ref{fig:commits} and fig \ref{fig:vulns}, can be seen in Table \ref{evaluations}. The results for the commit prediction model can be compared with the standard deviation of the actual values which is 152.79. This shows that the MAE and RMSE results are within a reasonable error margin. The RMSE result is larger than the MAE result as there are large fluctuations in the commits per month data but the fitted model performs well. The results for the vulnerability predictions can be compared with the standard deviation of the actual values which is 0.432. Both the MAE and the RMSE values for the vulnerability prediction model are within a reasonable error margin when compared to the standard deviation. Considering the Log4j vulnerability caused a large spike in vulnerabilities being reported for this package, the vulnerability prediction performs quite well and takes these spikes into account when predicting the next values. Overall both predictions performed well and thus the returned final value for the next month can be considered a reasonably accurate predicted value.
 
 \subsection{Threats to Validity}
 In this section, we identify possible threats to the validity of the results we obtained and how they were addressed. 
