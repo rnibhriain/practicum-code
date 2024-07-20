@@ -78,9 +78,9 @@ riskScores = dict()
 def findDependencies ():
 
     # this command gets the dependencies from a maven project
-    # subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell = True )
+    subprocess.run( [ "mvn", "dependency:tree", ">", "dependencies.txt" ], shell = True )
 
-    f = open( "Data/dependencies4.txt", "r" )
+    f = open( "Data/dependencies.txt", "r" )
 
     # add central node for the project
     G.add_node( "PROJECT", color = "black",  shape = 'square' )
@@ -491,10 +491,10 @@ def projectPrediction ( df, repo, type ):
     print( "*******************************************************************************\n" )
 
     # if the prediction is below 0 then return 0
-    if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
+    if autoparameters.predict()[ 0 ] < 0:
         return 0
 
-    return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
+    return autoparameters.predict()[ 0 ]
 
 # Find the Time It Took to Close an Issue 
 def closedIssuesResolving ( issues ):
@@ -724,10 +724,10 @@ def vulnerabilityPrediction ( df, dependency ):
     print( "**************************************************************************************************\n" ) 
 
     # if the prediction is below 0 then return 0
-    if autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ] < 0:
+    if autoparameters.predict()[ 0 ] < 0:
         return 0
 
-    return autoparameters.fittedvalues().values[ len( autoparameters.fittedvalues().values ) - 1 ]
+    return autoparameters.predict()[ 0 ]
 
 # Populate the Dates for gathered vulnerabilities per month
 def popDates ( vuls ) :
