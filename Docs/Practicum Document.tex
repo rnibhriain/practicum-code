@@ -52,6 +52,14 @@ We will answer the following research question:\\
 By answering the above question we aim to provide some new insights in the area of risk prediction for Maven projects. 
 
 \section{Key Terminology}
+In this section we will discuss some of the terminology that will be used throughout this paper. 
+
+\begin{itemize}
+    \item Maven dependency trees -  
+    \item ARIMA parameters - 
+    \item AutoARIMA - 
+    \item Time series terms - 
+\end{itemize}
 
 \section{Related Work}
 In this section, we review relevant work in the prediction of risk in open-source software. We examine the machine learning models used as well as the different objects of analysis used in the predictions.  
@@ -134,8 +142,18 @@ For the project activity prediction, we used data fetched from the GitHub API \c
 
 For the prediction, the date was used as an index and after calculating the \textit{d} parameter by differencing the data until the p-value of the augmented \textit{Dickey–Fuller test (ADF)} test was below 0.05. To identify the p and q parameters the \textit{Partial Autocorrelation Function (PACF)} and \textit{Autocorrelation function (ACF)} graphs were examined but it was not feasible to implement this system of parameter selection at a large scale. The \textit{Auto ARIMA} library was used to make the predictions as it offered a suitable method of selecting parameters when predicting across many projects \cite{noauthor_pmdarima_nodate}. The predicted value for the next month was returned for each of the GitHub libraries. If the data is constant or there is no data a -1 was returned as there is not enough data to make a prediction. 
 
+\begin{lstlisting}[caption=Example Keywords]
+
+JUnit4 Dependency in Maven Project:
+junit:junit:jar:4.11:test
+
+Array of Keywords in JUnit Dependency:
+['junit', 'junit4', 'junit jar ']
+
+\end{lstlisting}
+
 \subsection{Vulnerability CVE Data Prediction}
-For the vulnerability CVE data prediction data extracted using the NVD API was used \cite{noauthor_vulnerability_nodate}. Dependencies were then split into keywords to ensure that all of the relevant CVEs for that dependency were gathered. For each of the keywords, a request is made and any CVEs not already in the array of gathered CVEs are added. The monthly data, similar to the commits above, was gathered and the number of vulnerabilities per month was counted and a zero was inserted for missing values. 
+For the vulnerability CVE data prediction data extracted using the NVD API was used \cite{noauthor_vulnerability_nodate}. Dependencies were then split into an array of keywords to ensure that all of the relevant CVEs for that dependency were gathered. An example of this is in Listing 1. For each of the keywords, a request is made and any CVEs not already in the array of gathered CVEs are added. The monthly data, similar to the commits above, was gathered and the number of vulnerabilities per month was counted and a zero was inserted for missing values. 
 
 The prediction method used is similar to that used to model project activity. Some dependencies have few vulnerabilities per month or even per year. The \textit{Auto ARIMA} library was used to make the predictions. 
 
@@ -185,27 +203,27 @@ Figure \ref{fig:tree} shows a final dependency graph with colour-coded risk eval
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{JUnit4commits.png}
-    \caption{Commits Per Month for JUnit4: Actual vs Predicted.} 
+    \caption{Commits Per Month for JUnit4: Actual vs Fitted Values.} 
     \label{fig:commits}
 \end{figure}
 
-Figure \ref{fig:commits} shows the commits per month, fitted vs actual values, for the JUnit4 package. It is clear from this graph that the project activity in terms of commits was at its highest from around 2012 to 2017. 
+Figure \ref{fig:commits} shows the commits per month, fitted vs actual values, for the JUnit4 package. It is clear from this graph that the project activity in terms of commits was at its highest from around 2012 to 2017. The aim is to use the model to predict a value for the next month. 
 
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{Log4jVuls.png}
-    \caption{Vulnerabilities Per Month for Log4j: Actual vs Predicted.} 
+    \caption{Vulnerabilities Per Month for Log4j: Actual vs Fitted Values.} 
     \label{fig:vulns}
 \end{figure}
 
 Figure \ref{fig:vulns} shows the Log4j vulnerabilities over time and it is clear the Log4j vulnerabilities were reported in 2021 and these are predicted reasonably well in the subsequent months. 
 
-The tool displays graphs for every fitted model. If there is not enough data for the prediction to fit a model then there is no corresponding time series graph. The user can then investigate how accurate the fitted values are for each of the models. For time series graphs with less data over time, the models did not perform well and occasionally there were constant lines being returned rather than a fitted model which could not be returned as a value for the risk dependency graph. An example of this can be seen in Figure \ref{fig:const}. The predicted values for the vulnerability data for the Jackson databind dependency. The predicted values are a constant value of just below 1 which is not accurate given the actual values. 
+The tool displays graphs for every fitted model. If there is not enough data for the prediction to fit a model then there is no corresponding time series graph. The user can then investigate how accurate the fitted values are for each of the models. For time series graphs with less data over time, the models did not perform well and occasionally there were constant lines being returned rather than a fitted model which could not be returned as a value for the risk dependency graph. An example of this can be seen in Figure \ref{fig:const}. The actual and fitted values for the vulnerability data for the Jackson databind dependency \cite{noauthor_fasterxmljackson-databind_2024} is shown in this figure. The fitted values are a constant value of just below 1 which is not accurate given the actual values. 
 
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{Const.png}
-    \caption{Vulnerabilities Per Month for Jackson databind: Actual vs Predicted.} 
+    \caption{Vulnerabilities Per Month for Jackson databind: Actual vs Fitted Values.} 
     \label{fig:const}
 \end{figure}
 
@@ -223,7 +241,7 @@ For the evaluation of the models in this project, two commonly used metrics, mea
 
 \[ MAE = (1/n) \sum{i=n} |actual - forecast| \]
 
-\[ RMSE = \sqrt( (\sum (actual - predicted) ^ 2) / sample size )  \]
+\[ RMSE = \sqrt( (\sum (actual - forecast) ^ 2) / sample size )  \]
 
 These are the most commonly used evaluation metrics when evaluating Time Series predictions such as ARIMA. MAE is simply the mean of absolute errors where the absolute error is the difference between actual and predicted values. The error in MAE scales linearly so an error of ten is ten times worse than an error of one. RMSE measures the standard deviation of the residuals and their dispersion. It is the commonly used metric to evaluate the difference between actual and forecasted values. The RMSE measurement can be heavily influenced by any outlier predictions \cite{f_abdulhafidh_dael_performance_2022} as the errors are squared. The squared errors mean that an error of ten is ten times worse than an error of one. We investigated the use of mean absolute percentage error (MAPE) but we found this was not suitable as some of the actual values were 0 - causing division by one errors. MAPE is a measure of the average of the percentage error and will produce extreme values if the actual value is quite small and in the case of the actual value being a 0 the result is always Infinite. Through the use of these evaluation metrics, an understanding can be gained of the performance of our time series models. 
 
@@ -240,7 +258,7 @@ These are the most commonly used evaluation metrics when evaluating Time Series 
 \end{center}
 \end{table}
 
-The results we obtained for the two figures, fig \ref{fig:commits} and fig \ref{fig:vulns}, can be seen in Table \ref{evaluations}. The results for the commit prediction model can be compared with the standard deviation of the actual values which is 152.79. This shows that the MAE and RMSE results are within a reasonable error margin. The RMSE result is larger than the MAE result as there are large fluctuations in the commits per month data but the fitted model performs well. The results for the vulnerability predictions can be compared with the standard deviation of the actual values which is 0.432. Both the MAE and the RMSE values for the vulnerability prediction model are within a reasonable error margin when compared to the standard deviation. Considering the Log4j vulnerability caused a large spike in vulnerabilities being reported for this package, the vulnerability prediction performs quite well and takes these spikes into account when predicting the next values. Overall both predictions performed well and thus the returned final value for the next month can be considered a reasonably accurate predicted value.
+The results we obtained for the two figures, fig \ref{fig:commits} and fig \ref{fig:vulns}, can be seen in Table \ref{evaluations}. The results for the commit prediction model can be compared with the standard deviation of the actual values which is 152.79. This shows that the MAE and RMSE results are within a reasonable error margin. The RMSE result is larger than the MAE result as there are large fluctuations in the commits per month data but the fitted model performs well. The results for the vulnerability predictions can be compared with the standard deviation of the actual values which is 0.432. Both the MAE and the RMSE values for the vulnerability prediction model are within a reasonable error margin when compared to the standard deviation. Considering the Log4j vulnerability caused a large spike in vulnerabilities being reported for this package, the vulnerability prediction performs quite well and takes these spikes into account when predicting the next values. Overall both predictions performed well and thus the returned predicted value for the next month can be considered a reasonably accurate predicted value.
 
 \subsection{Threats to Validity}
 In this section, we identify possible threats to the validity of the results we obtained and how they were addressed. 
