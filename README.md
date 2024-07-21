@@ -32,8 +32,8 @@ This part of the analysis aims to predict how many vulnerabilities will be repor
 
 - Practicum Proposal Form
 - Literature Review
-- Final Report ( In Progress )
-- Practicum Presentation ( Started )
+- Practicum Paper
+- Practicum Presentation ( In Progress )
 - Blog
 - Images 
 
