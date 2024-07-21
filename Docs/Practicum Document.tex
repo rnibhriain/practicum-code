@@ -52,14 +52,19 @@ We will answer the following research question:\\
 By answering the above question we aim to provide some new insights in the area of risk prediction for Maven projects. 
 
 \section{Key Terminology}
-In this section we will discuss some of the terminology that will be used throughout this paper. 
+In this section we will discuss some of the terminology that will be used throughout this paper. \\
 
-\begin{itemize}
-    \item Maven dependency trees -  
-    \item ARIMA parameters - 
-    \item AutoARIMA - 
-    \item Time series terms - 
-\end{itemize}
+\subsection{Maven dependency trees}
+Maven is an open-source build automation and project management tool used in Java applications. It can be used to manage project dependencies using a Project Object Model, also known as a POM.xml file \cite{noauthor_maven_nodate}. 
+
+\subsection{Time series analysis} 
+Predicting the data for the future based on past data. The observations are taken at equal intervals - in our case they are taken monthly. A model is built using fitted values against the past data and data can be forecast based on this model. 
+
+\subsection{ARIMA}
+Autoregressive integrated moving average (ARIMA) is a statistical model used to predict future data in a time series. There are three parameters - p, d, and q. The AR stands for autoregression which is associated with the p parameter - the number of lagged values. The I stands for integrated as it observes the difference taken until the original series becomes stationary - this is represented with the d parameter. The MA stands for the moving average which is the dependency between an observed value and residual error from the model applied to previous observations - this is represented in the q parameter which is the size of the moving average window. The optimal p and q parameters can be determines by examining the Partial Autocorrelation Function and the Autocorrelation Function. The d parameter can be determined by differencing the data until the p-value of the Augmented Dickey-Fuller test is below a certain threshold \cite{a_a_ariyo_stock_2014}.
+
+\subsection{AutoARIMA}  
+Auto ARIMA is a library which cycles through and tests a number of parameter combinations to determine the best model for the provided data. The model is optimised based on the Akaike Information Criterion (AIC) and the Bayesian Information Criterion (BIC) with a focus on minimising these values \cite{noauthor_pmdarima_nodate}.
 
 \section{Related Work}
 In this section, we review relevant work in the prediction of risk in open-source software. We examine the machine learning models used as well as the different objects of analysis used in the predictions.  
@@ -140,7 +145,7 @@ A NetworkX graph was constructed with each of the dependencies displayed as node
 \subsection{Project Activity Measurement}
 For the project activity prediction, we used data fetched from the GitHub API \cite{noauthor_github_nodate}. The focus was on number of commits per month and time-to-fix issues as these were identified as indicators of a project's activity and thus it's success \cite{sen_open_2012, chahal_fuzzy_2016}. The user has the option to specify whether they wish to include the issue, commit data or both. All data available was used instead of specifying a specific time range as all of the projects had different time ranges available to use. All commits/closed issues available were gathered using the GitHub API and was processed to ensure there was data for each month up until the current date. In the case of commits, this was simply a count of commits per month and we added a zero for each of the months with no data. For the issue data, the time-to-close in days was gathered for each issue and a monthly average was calculated, adding a  for each of the months that had no data. 
 
-For the prediction, the date was used as an index and after calculating the \textit{d} parameter by differencing the data until the p-value of the augmented \textit{Dickey–Fuller test (ADF)} test was below 0.05. To identify the p and q parameters the \textit{Partial Autocorrelation Function (PACF)} and \textit{Autocorrelation function (ACF)} graphs were examined but it was not feasible to implement this system of parameter selection at a large scale. The \textit{Auto ARIMA} library was used to make the predictions as it offered a suitable method of selecting parameters when predicting across many projects \cite{noauthor_pmdarima_nodate}. The predicted value for the next month was returned for each of the GitHub libraries. If the data is constant or there is no data a -1 was returned as there is not enough data to make a prediction. 
+For the prediction, the date was used as an index and after calculating the \textit{d} parameter by differencing the data until the p-value of the \textit{Augmented Dickey–Fuller} test (ADF) test was below 0.05. To identify the p and q parameters the \textit{Partial Autocorrelation Function (PACF)} and \textit{Autocorrelation function (ACF)} graphs were examined but it was not feasible to implement this system of parameter selection at a large scale. The \textit{Auto ARIMA} library was used to make the predictions as it offered a suitable method of selecting parameters when predicting across many projects \cite{noauthor_pmdarima_nodate}. The predicted value for the next month was returned for each of the GitHub libraries. If the data is constant or there is no data a -1 was returned as there is not enough data to make a prediction. 
 
 \begin{lstlisting}[caption=Example Keywords]
 
