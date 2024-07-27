@@ -1,6 +1,6 @@
 # MSC Computing - Practicum Project 
 
-This repository contains the work that I did for my practicum project during my time at Dublin City University. The use of open-source software in large projects has been growing in the last number of years. Attackers exploit known vulnerabilities in open-source software and this measuring the risk of using these projects is essential. In large projects there can be a number of dependencies which depend on other projects and thus developers can be unaware of the risks that they are exposing themselves to - such as unmaintained projects. This project is a tool for the analysis of the risk of using open-source software. This project aims to investigate the dependency tree of a project and analyse the risk for each of the sub-dependencies giving the user a visual way to explore the risk level of their dependencies.  
+This repository contains the work that I did for my practicum project during my time at Dublin City University. The use of open-source software in large projects has been increasing in the last number of years. Attackers exploit known vulnerabilities in open-source software and thus measuring the risk of using these projects is essential. In large projects there can be a number of dependencies which depend on other projects and thus developers can be unaware of the risks that they are exposing themselves to - such as unmaintained projects. This project is a tool for the analysis of the risk of using open-source software. This project aims to investigate the dependency tree of a project and analyse the risk for each of the sub-dependencies giving the user a visual way to explore the risk level of their dependencies.  
 
 ## Code - Analysis.py 💻
 
@@ -8,7 +8,7 @@ The idea of the analysis is to analyse and pinpoint the dependencies that are ex
 
 ### Setup
 
-The setup involves populating the dependency links using the input in the text file provided. This is used to analyse the GitHub repo information - for either counting commits or counting number of days to resolve issues. The second piece of setup involves taking the configuration file as provided/edited by the user and placing it into the configuration object. 
+The setup involves populating the dependency links using the input in the mapping file provided. This is used to analyse the GitHub repo information - for either counting commits or counting number of days to resolve issues. The second piece of setup involves taking the configuration file as provided/edited by the user and placing it into the configuration object. 
 
 ### Finding and Graphing the Dependencies (of a Maven Project)
 
