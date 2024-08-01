@@ -2,7 +2,7 @@
 
 2023 - 2024
 
-This repository contains all of the research that I did for my practicum project during my time at Dublin City University. The use of open-source software in large projects has been increasing in the last number of years. Attackers can exploit known vulnerabilities in open-source software and thus measuring the risk of using these projects is essential. In large projects, there can be a number of dependencies which depend on other projects which leads to developers being unaware of the risks that they are exposing themselves to - such as unmaintained projects. This project is a tool for the analysis of the risk of using open-source software. The tool aims to investigate the dependency tree of a project and analyse the risk for each of the sub-dependencies giving the user a visual way to explore the risk level of their dependencies.
+This repository contains all of the research that I did for my practicum project during my Masters degree at Dublin City University. The use of open-source software in large projects has been increasing in the last number of years. Attackers can exploit known vulnerabilities in open-source software and thus measuring the risk of using these projects is essential. In large projects, there can be a number of dependencies which depend on other projects which leads to developers being unaware of the risks that they are exposing themselves to - such as unmaintained projects. This project is a tool for the analysis of the risk of using open-source software. The tool aims to investigate the dependency tree of a project and analyse the risk for each of the sub-dependencies giving the user a visual way to explore the risk level of their dependencies.
 
 ## Security Analysis Code - Analysis.py 💻
 
