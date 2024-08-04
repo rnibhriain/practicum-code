@@ -1,4 +1,4 @@
-# MSC Computing - Practicum Project 
+# MSC Computing - Final Practicum Project 
 
 2023 - 2024
 
